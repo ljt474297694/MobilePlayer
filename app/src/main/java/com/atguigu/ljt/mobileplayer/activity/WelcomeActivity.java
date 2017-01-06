@@ -9,7 +9,7 @@ import android.view.MotionEvent;
 import com.atguigu.ljt.mobileplayer.R;
 
 /**
- *  欢迎页面 两秒后进入主页面 或者触发onTouchEvent事件立刻进入主页面
+ * 欢迎页面 两秒后进入主页面 或者触发onTouchEvent事件立刻进入主页面
  */
 public class WelcomeActivity extends AppCompatActivity {
     private Handler handler = new Handler();

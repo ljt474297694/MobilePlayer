@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                     ft.add(R.id.fl_mainc_content, currentFragment);
                 }
-                //当前Fragment赋值为缓存Fragment
                 tempFragment = currentFragment;
                 //提交事物
                 ft.commit();

@@ -8,6 +8,9 @@ import android.view.MotionEvent;
 
 import com.atguigu.ljt.mobileplayer.R;
 
+/**
+ *  欢迎页面 两秒后进入主页面 或者触发onTouchEvent事件立刻进入主页面
+ */
 public class WelcomeActivity extends AppCompatActivity {
     private Handler handler = new Handler();
 
@@ -20,8 +23,8 @@ public class WelcomeActivity extends AppCompatActivity {
             public void run() {
                 startMainActivity();
             }
-    }, 2000);
-}
+        }, 2000);
+    }
 
     private void startMainActivity() {
         startActivity(new Intent(this, MainActivity.class));

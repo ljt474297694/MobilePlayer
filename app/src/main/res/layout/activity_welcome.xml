@@ -20,8 +20,8 @@
         android:gravity="center"
         android:layout_centerInParent="true">
         <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

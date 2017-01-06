@@ -33,6 +33,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * 设置RadioGroup监听的方法 用于根据对应的button的选择状态 切换不同Fragment
+     */
     private void initListener() {
         rg_main.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -58,27 +61,43 @@ public class MainActivity extends AppCompatActivity {
         rg_main.check(R.id.rb_local_video);
     }
 
+    /**
+     * 根据Fragmnent的显示状态进行判断  是否添加显示或者隐藏对应的Fragment
+     *
+     * @param currentFragment
+     */
     private void switchFragment(Fragment currentFragment) {
+        //当页面不同时才切换页面
         if (tempFragment != currentFragment) {
+            //需要显示的Fragment不能为空
             if (currentFragment != null) {
+                //开启Fragment事物
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                 if (currentFragment.isAdded()) {
+                    //如果当前Fragment添加过了那么隐藏之前的Fragment并显示当前Fragment
                     if (tempFragment != null) {
                         ft.hide(tempFragment);
                     }
                     ft.show(currentFragment);
                 } else {
+                    //如果当前Fragment没添加过了那么隐藏之前的Fragment并添加当前Fragment
                     if (tempFragment != null) {
                         ft.hide(tempFragment);
                     }
                     ft.add(R.id.fl_mainc_content, currentFragment);
                 }
-                ft.commit();
+                //当前Fragment赋值为缓存Fragment
                 tempFragment = currentFragment;
+                //提交事物
+                ft.commit();
             }
+
         }
     }
 
+    /**
+     * 把需要显示的Fragment初始化并增添到集合中
+     */
     private void initFragment() {
         fragments = new ArrayList<>();
         fragments.add(new LocalVideoFragment());

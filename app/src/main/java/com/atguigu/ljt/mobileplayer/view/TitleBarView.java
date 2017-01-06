@@ -14,7 +14,8 @@ import com.atguigu.ljt.mobileplayer.R;
 /**
  * Created by 李金桐 on 2017/1/6.
  * QQ: 474297694
- * 功能: xxxx
+ * 功能: TitleBarView
+ * 标题栏的布局 用于初始化各个子空间的监听时间
  */
 
 public class TitleBarView extends LinearLayout implements View.OnClickListener {
@@ -28,6 +29,10 @@ public class TitleBarView extends LinearLayout implements View.OnClickListener {
         mContext = context;
     }
 
+    /**
+     * 此方法会在子控件加载成功后调用
+     * 获得对应的子控件然后保存起来 用于设置事件监听器
+     */
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();

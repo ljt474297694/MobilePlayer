@@ -32,4 +32,7 @@ public class NetVideoFragment extends BaseFragment {
         textView.setText("网络视频");
 
     }
+    protected void onRequesData(){
+        textView.setText("网络视频刷新");
+    };
 }

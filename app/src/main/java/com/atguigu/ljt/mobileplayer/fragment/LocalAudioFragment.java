@@ -32,4 +32,7 @@ public class LocalAudioFragment extends BaseFragment {
         textView.setText("本地音频");
 
     }
+    protected void onRequesData(){
+        textView.setText("本地音频刷新");
+    };
 }

@@ -54,7 +54,7 @@ public abstract class BaseFragment extends Fragment {
      *
      * @return
      */
-    public abstract View initView();
+    protected abstract View initView();
 
     /**
      * 当Activity绑定fragment成功的时候 onCreateView()方法后调用
@@ -77,4 +77,27 @@ public abstract class BaseFragment extends Fragment {
     protected void initData() {
 
     }
+
+    /**
+     * 当Fragment的隐藏状态发生变化的时候回调的方法
+     *
+     * @param hidden 是否隐藏 true 表示隐藏  flase 表示显示
+     */
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        if (!hidden) {
+            //当显示的时候可以执行刷新数据
+            onRequesData();
+        }else{
+            //当隐藏的时候可以执行的操作
+
+        }
+
+    }
+
+    protected void onRequesData() {
+
+    }
+
+    ;
 }

@@ -32,4 +32,7 @@ public class NetAudioFragment extends BaseFragment {
         textView.setText("网络音频");
 
     }
+    protected void onRequesData(){
+        textView.setText("网络音频刷新");
+    };
 }

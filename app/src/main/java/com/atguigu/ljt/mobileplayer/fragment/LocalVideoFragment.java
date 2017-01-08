@@ -1,16 +1,19 @@
 package com.atguigu.ljt.mobileplayer.fragment;
 
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.atguigu.ljt.mobileplayer.R;
+import com.atguigu.ljt.mobileplayer.activity.SystemVideoPlayerActivity;
 import com.atguigu.ljt.mobileplayer.adapter.LocalVideoAdapter;
 import com.atguigu.ljt.mobileplayer.base.BaseFragment;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
@@ -46,6 +49,17 @@ public class LocalVideoFragment extends BaseFragment {
         View view = View.inflate(mContext, R.layout.fragment_local_video, null);
         mListView = (ListView) view.findViewById(R.id.listview);
         mTextView = (TextView) view.findViewById(R.id.tv_no_media);
+        /**
+         * 设置ListVeiw的点击监听 跳转到播放器页面 播放本地视频
+         */
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
+                intent.setDataAndType(Uri.parse(mediaItems.get(position).getData()),"video/*");
+                startActivity(intent);
+            }
+        });
         return view;
     }
 

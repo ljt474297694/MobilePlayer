@@ -1,13 +1,16 @@
 package com.atguigu.ljt.mobileplayer.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.text.format.Formatter;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
+import com.atguigu.ljt.mobileplayer.util.Utils;
 
 import java.util.ArrayList;
 
@@ -20,10 +23,12 @@ import java.util.ArrayList;
 public class LocalVideoAdapter extends BaseAdapter {
     private final Context mContext;
     private final ArrayList<MediaItem> datas;
+    private Utils timeUtil;
 
     public LocalVideoAdapter(Context mContext, ArrayList<MediaItem> mediaItems) {
         this.mContext = mContext;
         this.datas = mediaItems;
+        timeUtil = new Utils();
     }
 
     @Override
@@ -43,11 +48,28 @@ public class LocalVideoAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        TextView textView = new TextView(mContext);
-        textView.setTextSize(15);
-        textView.setTextColor(Color.BLACK);
-        MediaItem mediaItem =  datas.get(position);
-        textView.setText(mediaItem.toString());
-        return textView;
+        ViewHolder holder;
+        if (convertView == null) {
+            holder = new ViewHolder();
+            convertView = View.inflate(mContext, R.layout.item_local_video, null);
+            holder.tv_name = (TextView) convertView.findViewById(R.id.tv_name);
+            holder.tv_duration = (TextView) convertView.findViewById(R.id.tv_duration);
+            holder.tv_size = (TextView) convertView.findViewById(R.id.tv_size);
+            convertView.setTag(holder);
+        }else{
+            holder = (ViewHolder) convertView.getTag();
+        }
+        MediaItem mediaItem = datas.get(position);
+        holder.tv_name.setText(mediaItem.getName());
+        holder.tv_duration.setText(timeUtil.stringForTime((int) mediaItem.getDuration()));
+        holder.tv_size.setText(Formatter.formatFileSize(mContext,mediaItem.getSize()));
+        return convertView;
+    }
+
+    class ViewHolder {
+        ImageView iv_icon;
+        TextView tv_name;
+        TextView tv_duration;
+        TextView tv_size;
     }
 }

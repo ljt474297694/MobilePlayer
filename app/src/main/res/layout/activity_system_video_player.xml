@@ -7,8 +7,9 @@
     android:gravity="center"
     android:background="#ff000000"
     tools:context="com.atguigu.ljt.mobileplayer.activity.SystemVideoPlayerActivity">
-    <VideoView
+    <com.atguigu.ljt.mobileplayer.view.VideoView
         android:id="@+id/videoview"
+        android:layout_centerInParent="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />

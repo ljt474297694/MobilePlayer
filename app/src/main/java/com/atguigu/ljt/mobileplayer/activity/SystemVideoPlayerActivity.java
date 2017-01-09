@@ -10,6 +10,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -49,12 +51,17 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private Button btnStartPause;
     private Button btnNext;
     private Button btnSwitchScreen;
+
     private static final int PROGRESS = 0;
     private static final int PROGRESSTIME = 1;
+    private static final int HIDE_MEDIA_CONTROLLER = 2;
+
     private Utils timeUtil;
     private MyBroadcastRecevier recevier;
     private ArrayList<MediaItem> mediaItems;
     private int position;
+    private GestureDetector detector;
+    private boolean isShowMediaController = false;
 
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
@@ -82,6 +89,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         btnStartPause.setOnClickListener(this);
         btnNext.setOnClickListener(this);
         btnSwitchScreen.setOnClickListener(this);
+        hideMediaController();
     }
 
     private Handler handler = new Handler() {
@@ -99,6 +107,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     tvSystetime.setText(getSystemTime());
                     removeMessages(PROGRESSTIME);
                     sendEmptyMessageDelayed(PROGRESSTIME, 500);
+                    break;
+                case HIDE_MEDIA_CONTROLLER:
+                    hideMediaController();
                     break;
             }
         }
@@ -122,19 +133,25 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             setPreVideo();
             // Handle clicks for btnPre
         } else if (v == btnStartPause) {
-            if (videoview.isPlaying()) {
-                videoview.pause();
-                btnStartPause.setBackgroundResource(R.drawable.btn_start_selector);
-            } else {
-                videoview.start();
-                btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
-            }
+            startAndPause();
             // Handle clicks for btnStartPause
         } else if (v == btnNext) {
             setNextVideo();
             // Handle clicks for btnNext
         } else if (v == btnSwitchScreen) {
             // Handle clicks for btnSwitchScreen
+        }
+        handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER,4000);
+    }
+
+    private void startAndPause() {
+        if (videoview.isPlaying()) {
+            videoview.pause();
+            btnStartPause.setBackgroundResource(R.drawable.btn_start_selector);
+        } else {
+            videoview.start();
+            btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
         }
     }
 
@@ -154,6 +171,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         recevier = new MyBroadcastRecevier();
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(recevier, filter);
+
     }
 
     class MyBroadcastRecevier extends BroadcastReceiver {
@@ -262,6 +280,34 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     }
 
     private void setListener() {
+        /**
+         * 创建手势识别器对象并设置对应需要操作的监听
+         * 此处为 单击 双击 长按
+         */
+        detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public void onLongPress(MotionEvent e) {
+                super.onLongPress(e);
+                startAndPause();
+            }
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                return super.onDoubleTap(e);
+            }
+
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                if (isShowMediaController) {
+                    hideMediaController();
+                } else {
+                    showMediaController();
+                }
+                return super.onSingleTapConfirmed(e);
+            }
+
+
+        });
         //调用系统的媒体控制器
 //        videoview.setMediaController(new MediaController(this));
         seekbarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -275,19 +321,21 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
                     videoview.seekTo(progress);
-                }
-            }
+    }
+}
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                handler.removeMessages(PROGRESS);
-            }
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        handler.removeMessages(PROGRESS);
+        handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+    }
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                handler.sendEmptyMessage(PROGRESS);
-            }
-        });
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        handler.sendEmptyMessage(PROGRESS);
+        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER,4000);
+    }
+});
         /**
          * 当播放器准备完成时调用
          */
@@ -303,24 +351,43 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             }
         });
         /**
-                * 播放出错时调用
-                        */
-                videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-                    @Override
-                    public boolean onError(MediaPlayer mp, int what, int extra) {
-                        Toast.makeText(SystemVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-                });
-                /**
-                 * 播放完成时调用
-                 */
-                videoview.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mp) {
-                        setNextVideo();
+         * 播放出错时调用
+         */
+        videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                Toast.makeText(SystemVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
+                return false;
             }
         });
+        /**
+         * 播放完成时调用
+         */
+        videoview.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                setNextVideo();
+            }
+        });
+    }
+
+    private void showMediaController() {
+        isShowMediaController = true;
+        llBottom.setVisibility(View.VISIBLE);
+        llTop.setVisibility(View.VISIBLE);
+        handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER,4000);
+    }
+    private void hideMediaController() {
+        isShowMediaController = false;
+        llBottom.setVisibility(View.GONE);
+        llTop.setVisibility(View.GONE);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        detector.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
     @Override

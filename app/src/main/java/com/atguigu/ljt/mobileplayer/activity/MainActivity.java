@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.base.BaseFragment;
@@ -19,11 +20,14 @@ import com.atguigu.ljt.mobileplayer.fragment.NetVideoFragment;
 
 import java.util.ArrayList;
 
+import static android.os.Build.VERSION_CODES.M;
+
 public class MainActivity extends AppCompatActivity {
     private RadioGroup rg_main;
     private ArrayList<BaseFragment> fragments;
     private int position;
     private Fragment tempFragment;
+    private long currentTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
      * @return
      */
     public static boolean isGrantExternalRW(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && activity.checkSelfPermission(
+        if (Build.VERSION.SDK_INT >= M && activity.checkSelfPermission(
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
             activity.requestPermissions(new String[]{
@@ -130,4 +134,13 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    public void onBackPressed() {
+        if(System.currentTimeMillis()- currentTime >2000) {
+            Toast.makeText(MainActivity.this, "在按一次退出", Toast.LENGTH_SHORT).show();
+            currentTime = System.currentTimeMillis();
+        }else{
+            finish();
+        }
+    }
 }

@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -68,88 +69,98 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private int screenHeight;
     private int videoWidth;
     private int videoHeight;
+    private long currentTime = 0;
+    private AudioManager am;
+    private int currentVolume;
+    private int maxVolume;
+    private boolean isMute = false;
 
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
-            videoview = (VideoView) findViewById(R.id.videoview);
-            llTop = (LinearLayout) findViewById(R.id.ll_top);
-            tvName = (TextView) findViewById(R.id.tv_name);
-            ivBattery = (ImageView) findViewById(R.id.iv_battery);
-            tvSystetime = (TextView) findViewById(R.id.tv_systetime);
-            btnVoice = (Button) findViewById(R.id.btn_voice);
-            seekbarVoice = (SeekBar) findViewById(R.id.seekbar_voice);
-            btnSwichePlayer = (Button) findViewById(R.id.btn_swiche_player);
-            llBottom = (LinearLayout) findViewById(R.id.ll_bottom);
-            tvCurrenttime = (TextView) findViewById(R.id.tv_currenttime);
-            seekbarVideo = (SeekBar) findViewById(R.id.seekbar_video);
-            tvDuration = (TextView) findViewById(R.id.tv_duration);
-            btnExit = (Button) findViewById(R.id.btn_exit);
-            btnPre = (Button) findViewById(R.id.btn_pre);
-            btnStartPause = (Button) findViewById(R.id.btn_start_pause);
-            btnNext = (Button) findViewById(R.id.btn_next);
-            btnSwitchScreen = (Button) findViewById(R.id.btn_switch_screen);
-            btnVoice.setOnClickListener(this);
-            btnSwichePlayer.setOnClickListener(this);
-            btnExit.setOnClickListener(this);
-            btnPre.setOnClickListener(this);
-            btnStartPause.setOnClickListener(this);
-            btnNext.setOnClickListener(this);
-            btnSwitchScreen.setOnClickListener(this);
-            hideMediaController();
-        }
+        videoview = (VideoView) findViewById(R.id.videoview);
+        llTop = (LinearLayout) findViewById(R.id.ll_top);
+        tvName = (TextView) findViewById(R.id.tv_name);
+        ivBattery = (ImageView) findViewById(R.id.iv_battery);
+        tvSystetime = (TextView) findViewById(R.id.tv_systetime);
+        btnVoice = (Button) findViewById(R.id.btn_voice);
+        seekbarVoice = (SeekBar) findViewById(R.id.seekbar_voice);
+        btnSwichePlayer = (Button) findViewById(R.id.btn_swiche_player);
+        llBottom = (LinearLayout) findViewById(R.id.ll_bottom);
+        tvCurrenttime = (TextView) findViewById(R.id.tv_currenttime);
+        seekbarVideo = (SeekBar) findViewById(R.id.seekbar_video);
+        tvDuration = (TextView) findViewById(R.id.tv_duration);
+        btnExit = (Button) findViewById(R.id.btn_exit);
+        btnPre = (Button) findViewById(R.id.btn_pre);
+        btnStartPause = (Button) findViewById(R.id.btn_start_pause);
+        btnNext = (Button) findViewById(R.id.btn_next);
+        btnSwitchScreen = (Button) findViewById(R.id.btn_switch_screen);
+        btnVoice.setOnClickListener(this);
+        btnSwichePlayer.setOnClickListener(this);
+        btnExit.setOnClickListener(this);
+        btnPre.setOnClickListener(this);
+        btnStartPause.setOnClickListener(this);
+        btnNext.setOnClickListener(this);
+        btnSwitchScreen.setOnClickListener(this);
+        hideMediaController();
+        am = (AudioManager) getSystemService(AUDIO_SERVICE);
+        currentVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        seekbarVoice.setMax(maxVolume);
+        seekbarVoice.setProgress(currentVolume);
+    }
 
-        private Handler handler = new Handler() {
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case PROGRESS:
-                        int currentProgress = videoview.getCurrentPosition();
-                        seekbarVideo.setProgress(currentProgress);
-                        removeMessages(PROGRESS);
-                        sendEmptyMessageDelayed(PROGRESS, 500);
-                        break;
-                    case PROGRESSTIME:
-                        int currentTime = videoview.getCurrentPosition();
-                        tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
-                        tvSystetime.setText(getSystemTime());
-                        removeMessages(PROGRESSTIME);
-                        sendEmptyMessageDelayed(PROGRESSTIME, 500);
-                        break;
-                    case HIDE_MEDIA_CONTROLLER:
-                        hideMediaController();
-                        break;
-                }
+    private Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case PROGRESS:
+                    int currentProgress = videoview.getCurrentPosition();
+                    seekbarVideo.setProgress(currentProgress);
+                    removeMessages(PROGRESS);
+                    sendEmptyMessageDelayed(PROGRESS, 500);
+                    break;
+                case PROGRESSTIME:
+                    int currentTime = videoview.getCurrentPosition();
+                    tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
+                    tvSystetime.setText(getSystemTime());
+                    removeMessages(PROGRESSTIME);
+                    sendEmptyMessageDelayed(PROGRESSTIME, 500);
+                    break;
+                case HIDE_MEDIA_CONTROLLER:
+                    hideMediaController();
+                    break;
             }
-        };
-
-        /**
-         * Handle button click events<br />
-         * <br />
-         * Auto-created on 2017-01-09 12:51:14 by Android Layout Finder
-         * (http://www.buzzingandroid.com/tools/android-layout-finder)
-         */
-        @Override
-        public void onClick(View v) {
-            if (v == btnVoice) {
-                // Handle clicks for btnVoice
-            } else if (v == btnSwichePlayer) {
-                // Handle clicks for btnSwichePlayer
-            } else if (v == btnExit) {
-                finish();
-            } else if (v == btnPre) {
-                setPreVideo();
-                // Handle clicks for btnPre
-            } else if (v == btnStartPause) {
-                startAndPause();
-                // Handle clicks for btnStartPause
-            } else if (v == btnNext) {
-                setNextVideo();
-                // Handle clicks for btnNext
-            } else if (v == btnSwitchScreen) {
-                setVideoType();
-            }
-            handler.removeMessages(HIDE_MEDIA_CONTROLLER);
-            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
         }
+    };
+
+    /**
+     * Handle button click events<br />
+     * <br />
+     * Auto-created on 2017-01-09 12:51:14 by Android Layout Finder
+     * (http://www.buzzingandroid.com/tools/android-layout-finder)
+     */
+    @Override
+    public void onClick(View v) {
+        if (v == btnVoice) {
+            updateVoice(currentVolume, true);
+        } else if (v == btnSwichePlayer) {
+            // Handle clicks for btnSwichePlayer
+        } else if (v == btnExit) {
+            twoSecondFinish();
+        } else if (v == btnPre) {
+            setPreVideo();
+            // Handle clicks for btnPre
+        } else if (v == btnStartPause) {
+            startAndPause();
+            // Handle clicks for btnStartPause
+        } else if (v == btnNext) {
+            setNextVideo();
+            // Handle clicks for btnNext
+        } else if (v == btnSwitchScreen) {
+            setVideoType();
+        }
+        handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+    }
 
     private void startAndPause() {
         if (videoview.isPlaying()) {
@@ -181,6 +192,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
         screenWidth = outMetrics.widthPixels;
         screenHeight = outMetrics.heightPixels;
+
     }
 
     class MyBroadcastRecevier extends BroadcastReceiver {
@@ -235,8 +247,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 videoview.setVideoPath(mediaItem.getData());
                 checkButtonStatus();
             } else {
-                position = mediaItems.size() - 1;
-                Toast.makeText(SystemVideoPlayerActivity.this, "已经是最后一个了", Toast.LENGTH_SHORT).show();
+                position = -1;
+                setNextVideo();
             }
         } else if (uri != null) {
             finish();
@@ -289,6 +301,24 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     }
 
     private void setListener() {
+        seekbarVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    updateVoice(progress, false);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+            }
+        });
         /**
          * 创建手势识别器对象并设置对应需要操作的监听
          * 此处为 单击 双击 长按
@@ -377,11 +407,38 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
          * 播放完成时调用
          */
         videoview.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
+            @Override
             public void onCompletion(MediaPlayer mp) {
                 setNextVideo();
             }
         });
+    }
+
+    /**
+     * @param progress       progress的进度和音量同步 可以完美控制音量
+     * @param isConsiderMute 是否考虑静音
+     */
+    private void updateVoice(int progress, boolean isConsiderMute) {
+        if (isConsiderMute) {
+            if (isMute) {
+                isMute = !isMute;
+                am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                seekbarVoice.setProgress(progress);
+            } else {
+                isMute = !isMute;
+                am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
+                seekbarVoice.setProgress(0);
+            }
+        } else {
+            if (progress <= 0) {
+                isMute = true;
+            } else {
+                isMute = false;
+            }
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+            seekbarVoice.setProgress(progress);
+        }
+        currentVolume = progress;
     }
 
     private void setVideoType() {
@@ -420,10 +477,33 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         llTop.setVisibility(View.GONE);
     }
 
+    private float startY;
+    private float touchScreenHeight;
+    private int startVolume;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         detector.onTouchEvent(event);
-        return super.onTouchEvent(event);
+        super.onTouchEvent(event);
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                startY = event.getY();
+                touchScreenHeight = Math.min(screenHeight,screenWidth);
+                startVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float endY = event.getY();
+                float distanceY  = startY - endY;
+                float tempVolume = ((distanceY / touchScreenHeight)*maxVolume);
+                int volume = (int) Math.min(Math.max(startVolume+tempVolume,0),maxVolume);
+                if(tempVolume!=0) {
+                    updateVoice(volume,false);
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+
+                break;
+        }
+        return true;
     }
 
     @Override
@@ -433,5 +513,20 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         }
         handler.removeCallbacksAndMessages(null);
         super.onDestroy();
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        twoSecondFinish();
+    }
+
+    private void twoSecondFinish() {
+        if (System.currentTimeMillis() - currentTime > 2000) {
+            Toast.makeText(SystemVideoPlayerActivity.this, "在按一次退出", Toast.LENGTH_SHORT).show();
+            currentTime = System.currentTimeMillis();
+        } else {
+            finish();
+        }
     }
 }

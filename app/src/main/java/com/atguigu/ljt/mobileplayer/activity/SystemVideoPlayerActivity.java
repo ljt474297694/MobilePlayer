@@ -119,6 +119,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         } else if (v == btnExit) {
             // Handle clicks for btnExit
         } else if (v == btnPre) {
+            setPreVideo();
             // Handle clicks for btnPre
         } else if (v == btnStartPause) {
             if (videoview.isPlaying()) {
@@ -130,11 +131,13 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             }
             // Handle clicks for btnStartPause
         } else if (v == btnNext) {
+            setNextVideo();
             // Handle clicks for btnNext
         } else if (v == btnSwitchScreen) {
             // Handle clicks for btnSwitchScreen
         }
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -189,16 +192,73 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private void setData() {
         if (mediaItems != null && mediaItems.size() > 0) {
             MediaItem mediaItem = mediaItems.get(position);
+            tvName.setText(mediaItem.getName());
             videoview.setVideoPath(mediaItem.getData());
         } else if (uri != null) {
             videoview.setVideoURI(uri);
         }
     }
 
+    private void setNextVideo() {
+        if (mediaItems != null && mediaItems.size() > 0) {
+            position++;
+            if (position < mediaItems.size()) {
+                MediaItem mediaItem = mediaItems.get(position);
+                tvName.setText(mediaItem.getName());
+                videoview.setVideoPath(mediaItem.getData());
+                checkButtonStatus();
+            } else {
+                position = mediaItems.size() - 1;
+                Toast.makeText(SystemVideoPlayerActivity.this, "已经是最后一个了", Toast.LENGTH_SHORT).show();
+            }
+        } else if (uri != null) {
+            finish();
+        }
+    }
+
+    private void setPreVideo() {
+        if (mediaItems != null && mediaItems.size() > 0) {
+            position--;
+            if (position >= 0) {
+                MediaItem mediaItem = mediaItems.get(position);
+                tvName.setText(mediaItem.getName());
+                videoview.setVideoPath(mediaItem.getData());
+                checkButtonStatus();
+            } else {
+                position = 0;
+            }
+        }
+    }
+
+    private void checkButtonStatus() {
+        setButtonEnable(true);
+        if (position == 0) {
+            btnPre.setBackgroundResource(R.drawable.btn_pre_gray);
+            btnPre.setEnabled(false);
+        } else if (position == mediaItems.size() - 1) {
+            btnNext.setBackgroundResource(R.drawable.btn_next_gray);
+            btnNext.setEnabled(false);
+        }
+
+    }
+
+    private void setButtonEnable(boolean isEnable) {
+        if (isEnable) {
+            btnNext.setBackgroundResource(R.drawable.btn_next_selector);
+            btnPre.setBackgroundResource(R.drawable.btn_pre_selector);
+        } else {
+            btnNext.setBackgroundResource(R.drawable.btn_next_gray);
+            btnPre.setBackgroundResource(R.drawable.btn_pre_gray);
+        }
+        btnNext.setEnabled(isEnable);
+        btnPre.setEnabled(isEnable);
+    }
+
     public void getData() {
         uri = getIntent().getData();
         mediaItems = (ArrayList<MediaItem>) getIntent().getSerializableExtra("videolist");
         position = getIntent().getIntExtra("position", 0);
+        checkButtonStatus();
     }
 
     private void setListener() {
@@ -243,23 +303,22 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             }
         });
         /**
-         * 播放出错时调用
-         */
-        videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Toast.makeText(SystemVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-        });
-        /**
-         * 播放完成时调用
-         */
-        videoview.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                Toast.makeText(SystemVideoPlayerActivity.this, "播放完成", Toast.LENGTH_SHORT).show();
-                finish();
+                * 播放出错时调用
+                        */
+                videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                    @Override
+                    public boolean onError(MediaPlayer mp, int what, int extra) {
+                        Toast.makeText(SystemVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                });
+                /**
+                 * 播放完成时调用
+                 */
+                videoview.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        setNextVideo();
             }
         });
     }

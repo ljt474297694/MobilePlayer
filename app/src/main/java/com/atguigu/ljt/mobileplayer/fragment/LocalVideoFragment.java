@@ -92,7 +92,7 @@ public class LocalVideoFragment extends BaseFragment {
                 Cursor cursor = resolver.query(uri, objs, null, null, null);
                 if (cursor != null) {
                     while (cursor.moveToNext()) {
-                        String name = cursor.getString(0);
+                        String name = cursor.getString(0).substring(0,cursor.getString(0).lastIndexOf("."));
                         long duration = cursor.getLong(1);
                         long size = cursor.getLong(2);
                         String data = cursor.getString(3);

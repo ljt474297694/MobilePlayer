@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -14,7 +16,11 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.atguigu.ljt.mobileplayer.R;
+import com.atguigu.ljt.mobileplayer.util.Utils;
 
+/**
+ * 视频播放Activity
+ */
 public class SystemVideoPlayerActivity extends Activity implements View.OnClickListener {
     private VideoView videoview;
     private Uri uri;
@@ -34,6 +40,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private Button btnStartPause;
     private Button btnNext;
     private Button btnSwitchScreen;
+    private static final int PROGRESS = 0;
+    private static final int PROGRESSTIME = 1;
+    private Utils timeUtil;
 
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
@@ -54,7 +63,6 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         btnStartPause = (Button) findViewById(R.id.btn_start_pause);
         btnNext = (Button) findViewById(R.id.btn_next);
         btnSwitchScreen = (Button) findViewById(R.id.btn_switch_screen);
-
         btnVoice.setOnClickListener(this);
         btnSwichePlayer.setOnClickListener(this);
         btnExit.setOnClickListener(this);
@@ -63,6 +71,25 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         btnNext.setOnClickListener(this);
         btnSwitchScreen.setOnClickListener(this);
     }
+
+    private Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case PROGRESS:
+                    int currentProgress = videoview.getCurrentPosition();
+                    seekbarVideo.setProgress(currentProgress);
+                    removeMessages(PROGRESS);
+                    sendEmptyMessage(PROGRESS);
+                    break;
+                case PROGRESSTIME:
+                    int currentTime = videoview.getCurrentPosition();
+                    tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
+                    removeMessages(PROGRESSTIME);
+                    sendEmptyMessage(PROGRESSTIME);
+                    break;
+            }
+        }
+    };
 
     /**
      * Handle button click events<br />
@@ -81,10 +108,10 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         } else if (v == btnPre) {
             // Handle clicks for btnPre
         } else if (v == btnStartPause) {
-            if(videoview.isPlaying()) {
+            if (videoview.isPlaying()) {
                 videoview.pause();
                 btnStartPause.setBackgroundResource(R.drawable.btn_start_selector);
-            }else{
+            } else {
                 videoview.start();
                 btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
             }
@@ -100,9 +127,14 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         findViews();
+        initData();
         setListener();
         getData();
         setData();
+    }
+
+    private void initData() {
+        timeUtil = new Utils();
     }
 
     private void setData() {
@@ -125,19 +157,19 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
              */
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser) {
+                if (fromUser) {
                     videoview.seekTo(progress);
                 }
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                handler.removeMessages(PROGRESS);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                handler.sendEmptyMessage(PROGRESS);
             }
         });
         /**
@@ -149,6 +181,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 mp.start();
                 int duration = videoview.getDuration();
                 seekbarVideo.setMax(duration);
+                tvDuration.setText(timeUtil.stringForTime(duration));
+                handler.sendEmptyMessage(PROGRESS);
+                handler.sendEmptyMessage(PROGRESSTIME);
             }
         });
         /**

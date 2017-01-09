@@ -36,9 +36,9 @@ public class LocalVideoFragment extends BaseFragment {
         public void handleMessage(Message msg) {
             if (mediaItems != null && mediaItems.size() > 0) {
                 mTextView.setVisibility(View.GONE);
-                adapter = new LocalVideoAdapter(mContext,mediaItems);
+                adapter = new LocalVideoAdapter(mContext, mediaItems);
                 mListView.setAdapter(adapter);
-            }else{
+            } else {
                 mTextView.setVisibility(View.VISIBLE);
             }
         }
@@ -56,7 +56,7 @@ public class LocalVideoFragment extends BaseFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
-                intent.setDataAndType(Uri.parse(mediaItems.get(position).getData()),"video/*");
+                intent.setDataAndType(Uri.parse(mediaItems.get(position).getData()), "video/*");
                 startActivity(intent);
             }
         });
@@ -75,14 +75,14 @@ public class LocalVideoFragment extends BaseFragment {
                 mediaItems = new ArrayList<MediaItem>();
                 ContentResolver resolver = mContext.getContentResolver();
                 Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                String[] strings = {
+                String[] objs = {
                         MediaStore.Video.Media.DISPLAY_NAME,
                         MediaStore.Video.Media.DURATION,
                         MediaStore.Video.Media.SIZE,
                         MediaStore.Video.Media.DATA,
-                        MediaStore.Video.Media.ARTIST,
+                        MediaStore.Video.Media.ARTIST
                 };
-                Cursor cursor = resolver.query(uri, strings, null, null, null);
+                Cursor cursor = resolver.query(uri, objs, null, null, null);
                 if (cursor != null) {
                     while (cursor.moveToNext()) {
                         String name = cursor.getString(0);
@@ -102,8 +102,6 @@ public class LocalVideoFragment extends BaseFragment {
 
     protected void onRequesData() {
     }
-
-    ;
 
 
 }

@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -32,7 +33,9 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * 视频播放Activity
+ * Created by 李金桐 on 2017/1/7.
+ * QQ: 474297694
+ * 功能: 简单的自定义播放器 使用VideoView
  */
 public class SystemVideoPlayerActivity extends Activity implements View.OnClickListener {
     private VideoView videoview;
@@ -53,10 +56,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private Button btnStartPause;
     private Button btnNext;
     private Button btnSwitchScreen;
+    private TextView tv_volume;
 
     private static final int PROGRESS = 0;
     private static final int PROGRESSTIME = 1;
     private static final int HIDE_MEDIA_CONTROLLER = 2;
+    private static final int HiDE_VOLUME_TEXTVIEW = 3;
 
     private Utils timeUtil;
     private MyBroadcastRecevier recevier;
@@ -75,9 +80,11 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private int maxVolume;
     private boolean isMute = false;
 
+
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
         videoview = (VideoView) findViewById(R.id.videoview);
+        tv_volume = (TextView) findViewById(R.id.tv_volume);
         llTop = (LinearLayout) findViewById(R.id.ll_top);
         tvName = (TextView) findViewById(R.id.tv_name);
         ivBattery = (ImageView) findViewById(R.id.iv_battery);
@@ -107,6 +114,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         seekbarVoice.setMax(maxVolume);
         seekbarVoice.setProgress(currentVolume);
+        tv_volume.setVisibility(View.GONE);
     }
 
     private Handler handler = new Handler() {
@@ -127,6 +135,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     break;
                 case HIDE_MEDIA_CONTROLLER:
                     hideMediaController();
+                    break;
+                case HiDE_VOLUME_TEXTVIEW:
+                    tv_volume.setVisibility(View.GONE);
                     break;
             }
         }
@@ -424,10 +435,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 isMute = !isMute;
                 am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
                 seekbarVoice.setProgress(progress);
+                tv_volume.setText(progress * 100 / maxVolume+"%");
             } else {
                 isMute = !isMute;
                 am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
                 seekbarVoice.setProgress(0);
+                tv_volume.setText(0+"%");
             }
         } else {
             if (progress <= 0) {
@@ -437,10 +450,17 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             }
             am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
             seekbarVoice.setProgress(progress);
+            tv_volume.setText(progress * 100 / maxVolume+"%");
         }
+        handler.removeMessages(HiDE_VOLUME_TEXTVIEW);
+        handler.sendEmptyMessageDelayed(HiDE_VOLUME_TEXTVIEW,4000);
+        tv_volume.setVisibility(View.VISIBLE);
         currentVolume = progress;
     }
 
+    /**
+     * 将屏幕状态改变 如果是全屏就变回默认 默认就变回全屏
+     */
     private void setVideoType() {
         if (isFullScreen) {
             isFullScreen = !isFullScreen;
@@ -480,6 +500,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private float startY;
     private float touchScreenHeight;
     private int startVolume;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         detector.onTouchEvent(event);
@@ -487,16 +508,16 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 startY = event.getY();
-                touchScreenHeight = Math.min(screenHeight,screenWidth);
+                touchScreenHeight = Math.min(screenHeight, screenWidth);
                 startVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
                 break;
             case MotionEvent.ACTION_MOVE:
                 float endY = event.getY();
-                float distanceY  = startY - endY;
-                float tempVolume = ((distanceY / touchScreenHeight)*maxVolume);
-                int volume = (int) Math.min(Math.max(startVolume+tempVolume,0),maxVolume);
-                if(tempVolume!=0) {
-                    updateVoice(volume,false);
+                float distanceY = startY - endY;
+                float tempVolume = ((distanceY / touchScreenHeight) * maxVolume);
+                int volume = (int) Math.min(Math.max(startVolume + tempVolume, 0), maxVolume);
+                if (tempVolume != 0) {
+                    updateVoice(volume, false);
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -506,15 +527,24 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         return true;
     }
 
-    @Override
-    protected void onDestroy() {
-        if (recevier != null) {
-            unregisterReceiver(recevier);
-        }
-        handler.removeCallbacksAndMessages(null);
-        super.onDestroy();
-    }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            currentVolume--;
+            updateVoice(currentVolume, false);
+            handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            currentVolume++;
+            updateVoice(currentVolume, false);
+            handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 
     @Override
     public void onBackPressed() {
@@ -528,5 +558,14 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         } else {
             finish();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (recevier != null) {
+            unregisterReceiver(recevier);
+        }
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 }

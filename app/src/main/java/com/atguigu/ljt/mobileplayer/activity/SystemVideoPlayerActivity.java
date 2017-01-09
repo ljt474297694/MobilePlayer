@@ -116,6 +116,30 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private void setListener() {
         //调用系统的媒体控制器
 //        videoview.setMediaController(new MediaController(this));
+        seekbarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            /**
+             *
+             * @param seekBar
+             * @param progress
+             * @param fromUser 用户进度产生改变时返回ture 否则返回false
+             */
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) {
+                    videoview.seekTo(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
         /**
          * 当播放器准备完成时调用
          */
@@ -123,6 +147,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             @Override
             public void onPrepared(MediaPlayer mp) {
                 mp.start();
+                int duration = videoview.getDuration();
+                seekbarVideo.setMax(duration);
             }
         });
         /**

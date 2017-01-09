@@ -100,7 +100,7 @@ public class LocalVideoFragment extends BaseFragment {
         }.start();
     }
 
-    protected void onRequesData() {
+        protected void onRequesData() {
     }
 
 

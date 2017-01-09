@@ -3,6 +3,9 @@ package com.atguigu.ljt.mobileplayer.util;
 import java.util.Formatter;
 import java.util.Locale;
 
+/**
+ * 工具类  毫秒转换成 时分秒
+ */
 public class Utils {
 
 	private StringBuilder mFormatBuilder;

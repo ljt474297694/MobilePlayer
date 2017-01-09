@@ -17,7 +17,7 @@ import java.util.ArrayList;
 /**
  * Created by 李金桐 on 2017/1/7.
  * QQ: 474297694
- * 功能: xxxx
+ * 功能: 本地视频的列表配适器
  */
 
 public class LocalVideoAdapter extends BaseAdapter {

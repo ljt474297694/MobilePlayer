@@ -58,6 +58,11 @@ public class LocalVideoFragment extends BaseFragment {
                 Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
                 intent.setDataAndType(Uri.parse(mediaItems.get(position).getData()), "video/*");
                 startActivity(intent);
+//                Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
+//                Bundle bundle = new Bundle();
+//                bundle.putSerializable();
+//                intent.putExtra("videolist",bundle);
+//                startActivity(intent);
             }
         });
         return view;

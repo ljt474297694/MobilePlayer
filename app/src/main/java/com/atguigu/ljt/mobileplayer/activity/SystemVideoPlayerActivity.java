@@ -1,6 +1,10 @@
 package com.atguigu.ljt.mobileplayer.activity;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +21,9 @@ import android.widget.VideoView;
 
 import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.util.Utils;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 视频播放Activity
@@ -43,6 +50,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private static final int PROGRESS = 0;
     private static final int PROGRESSTIME = 1;
     private Utils timeUtil;
+    private MyBroadcastRecevier recevier;
 
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
@@ -79,13 +87,14 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     int currentProgress = videoview.getCurrentPosition();
                     seekbarVideo.setProgress(currentProgress);
                     removeMessages(PROGRESS);
-                    sendEmptyMessage(PROGRESS);
+                    sendEmptyMessageDelayed(PROGRESS,500);
                     break;
                 case PROGRESSTIME:
                     int currentTime = videoview.getCurrentPosition();
                     tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
+                    tvSystetime.setText(getSystemTime());
                     removeMessages(PROGRESSTIME);
-                    sendEmptyMessage(PROGRESSTIME);
+                    sendEmptyMessageDelayed(PROGRESSTIME,500);
                     break;
             }
         }
@@ -135,6 +144,41 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
 
     private void initData() {
         timeUtil = new Utils();
+        recevier = new MyBroadcastRecevier();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(recevier, filter);
+    }
+
+    class MyBroadcastRecevier extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int level = intent.getIntExtra("level", 0);
+            setBattery(level);
+        }
+    }
+
+    private void setBattery(int level) {
+        if (level <= 0) {
+            ivBattery.setImageResource(R.drawable.ic_battery_0);
+        } else if (level <= 10) {
+            ivBattery.setImageResource(R.drawable.ic_battery_10);
+        } else if (level <= 20) {
+            ivBattery.setImageResource(R.drawable.ic_battery_20);
+        } else if (level <= 40) {
+            ivBattery.setImageResource(R.drawable.ic_battery_40);
+        } else if (level <= 60) {
+            ivBattery.setImageResource(R.drawable.ic_battery_60);
+        } else if (level <= 80) {
+            ivBattery.setImageResource(R.drawable.ic_battery_80);
+        } else if (level <= 100) {
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        } else {
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        }
+    }
+    private String getSystemTime(){
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+        return format.format(new Date());
     }
 
     private void setData() {
@@ -208,5 +252,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         });
     }
 
-
+    @Override
+    protected void onDestroy() {
+        if (recevier != null) {
+            unregisterReceiver(recevier);
+        }
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
+    }
 }

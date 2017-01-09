@@ -1,12 +1,14 @@
 package com.atguigu.ljt.mobileplayer.bean;
 
+import java.io.Serializable;
+
 /**
  * Created by 李金桐 on 2017/1/7.
  * QQ: 474297694
  * 功能: 视频音频信息对象
  */
 
-public class MediaItem {
+public class MediaItem implements Serializable{
     String name ;
     long duration ;
     long size ;

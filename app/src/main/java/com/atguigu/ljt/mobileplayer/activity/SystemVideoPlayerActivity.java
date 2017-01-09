@@ -20,9 +20,11 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.atguigu.ljt.mobileplayer.R;
+import com.atguigu.ljt.mobileplayer.bean.MediaItem;
 import com.atguigu.ljt.mobileplayer.util.Utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -51,6 +53,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private static final int PROGRESSTIME = 1;
     private Utils timeUtil;
     private MyBroadcastRecevier recevier;
+    private ArrayList<MediaItem> mediaItems;
+    private int position;
 
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
@@ -87,14 +91,14 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     int currentProgress = videoview.getCurrentPosition();
                     seekbarVideo.setProgress(currentProgress);
                     removeMessages(PROGRESS);
-                    sendEmptyMessageDelayed(PROGRESS,500);
+                    sendEmptyMessageDelayed(PROGRESS, 500);
                     break;
                 case PROGRESSTIME:
                     int currentTime = videoview.getCurrentPosition();
                     tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
                     tvSystetime.setText(getSystemTime());
                     removeMessages(PROGRESSTIME);
-                    sendEmptyMessageDelayed(PROGRESSTIME,500);
+                    sendEmptyMessageDelayed(PROGRESSTIME, 500);
                     break;
             }
         }
@@ -176,17 +180,25 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             ivBattery.setImageResource(R.drawable.ic_battery_100);
         }
     }
-    private String getSystemTime(){
+
+    private String getSystemTime() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
         return format.format(new Date());
     }
 
     private void setData() {
-        videoview.setVideoURI(uri);
+        if (mediaItems != null && mediaItems.size() > 0) {
+            MediaItem mediaItem = mediaItems.get(position);
+            videoview.setVideoPath(mediaItem.getData());
+        } else if (uri != null) {
+            videoview.setVideoURI(uri);
+        }
     }
 
     public void getData() {
         uri = getIntent().getData();
+        mediaItems = (ArrayList<MediaItem>) getIntent().getSerializableExtra("videolist");
+        position = getIntent().getIntExtra("position", 0);
     }
 
     private void setListener() {

@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -55,14 +56,15 @@ public class LocalVideoFragment extends BaseFragment {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
-                intent.setDataAndType(Uri.parse(mediaItems.get(position).getData()), "video/*");
-                startActivity(intent);
 //                Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
-//                Bundle bundle = new Bundle();
-//                bundle.putSerializable();
-//                intent.putExtra("videolist",bundle);
+//                intent.setDataAndType(Uri.parse(mediaItems.get(position).getData()), "video/*");
 //                startActivity(intent);
+                Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("videolist",mediaItems);
+                intent.putExtras(bundle);
+                intent.putExtra("position",position);
+                startActivity(intent);
             }
         });
         return view;

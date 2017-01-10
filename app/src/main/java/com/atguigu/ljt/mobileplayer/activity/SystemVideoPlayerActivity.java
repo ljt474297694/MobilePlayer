@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -58,7 +59,10 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private Button btnSwitchScreen;
     private TextView tv_volume;
     private LinearLayout ll_loading;
+    private LinearLayout ll_buffer;
     private TextView tv_loading;
+    private TextView tv_buffer;
+
 
     private static final int PROGRESS = 0;
     private static final int PROGRESSTIME = 1;
@@ -82,13 +86,16 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private int maxVolume;
     private boolean isMute;
     private boolean isNetUrl;
+    private int prePosition;
 
 
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
         videoview = (VideoView) findViewById(R.id.videoview);
         tv_loading = (TextView) findViewById(R.id.tv_loading);
+        tv_buffer = (TextView) findViewById(R.id.tv_buffer);
         ll_loading = (LinearLayout) findViewById(R.id.ll_loading);
+        ll_buffer = (LinearLayout) findViewById(R.id.ll_buffer);
         tv_volume = (TextView) findViewById(R.id.tv_volume);
         llTop = (LinearLayout) findViewById(R.id.ll_top);
         tvName = (TextView) findViewById(R.id.tv_name);
@@ -130,11 +137,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     seekbarVideo.setProgress(currentProgress);
                     removeMessages(PROGRESS);
                     sendEmptyMessageDelayed(PROGRESS, 1000);
-                    if(isNetUrl) {
-                        int buffer = videoview.getBufferPercentage();
-                        int bufferProgress= buffer * seekbarVideo.getMax() /100;
-                        seekbarVideo.setSecondaryProgress(bufferProgress);
-                    }
+
 
                     break;
                 case PROGRESSTIME:
@@ -142,7 +145,23 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
                     tvSystetime.setText(getSystemTime());
                     removeMessages(PROGRESSTIME);
-                    sendEmptyMessageDelayed(PROGRESSTIME, 500);
+                    sendEmptyMessageDelayed(PROGRESSTIME, 1000);
+                    if (isNetUrl) {
+                        int buffer = videoview.getBufferPercentage();
+                        int bufferProgress = buffer * seekbarVideo.getMax() / 100;
+                        seekbarVideo.setSecondaryProgress(bufferProgress);
+                    }
+                    if (isNetUrl && videoview.isPlaying()) {
+                        int buffer = currentTime - prePosition;
+                        if (buffer < 500) {
+                            ll_buffer.setVisibility(View.VISIBLE);
+                        } else {
+                            ll_buffer.setVisibility(View.GONE);
+
+                        }
+                    }
+                    prePosition = currentTime;
+
                     break;
                 case HIDE_MEDIA_CONTROLLER:
                     hideMediaController();
@@ -259,7 +278,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         } else if (uri != null) {
             videoview.setVideoURI(uri);
             setButtonEnable(false);
-            tvName.setText(uri.toString().substring(uri.toString().lastIndexOf("/")+1,uri.toString().lastIndexOf(".")));
+            tvName.setText(uri.toString().substring(uri.toString().lastIndexOf("/") + 1, uri.toString().lastIndexOf(".")));
             isNetUrl = timeUtil.isNetUrl(uri.toString());
         }
         ll_loading.setVisibility(View.VISIBLE);
@@ -281,6 +300,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             ll_loading.setVisibility(View.VISIBLE);
         } else if (uri != null) {
             isNetUrl = timeUtil.isNetUrl(uri.toString());
+            startAndPause();
         }
     }
 
@@ -334,6 +354,22 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     }
 
     private void setListener() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+//            videoview.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+//                @Override
+//                public boolean onInfo(MediaPlayer mp, int what, int extra) {
+//                    switch (what) {
+//                        case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+//                            ll_buffer.setVisibility(View.VISIBLE);
+//                            break;
+//                        case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+//                            ll_buffer.setVisibility(View.GONE);
+//                            break;
+//                    }
+//                    return true;
+//                }
+//            });
+        }
         seekbarVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -425,6 +461,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 videoHeight = mp.getVideoHeight();
                 setVideoType();
                 ll_loading.setVisibility(View.GONE);
+//                mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+//                    @Override
+//                    public void onSeekComplete(MediaPlayer mp) {
+//                        Toast.makeText(SystemVideoPlayerActivity.this, "拖动完成了", Toast.LENGTH_SHORT).show();
+//                    }
+//                });
             }
         });
         /**

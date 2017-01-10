@@ -68,6 +68,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private static final int PROGRESSTIME = 1;
     private static final int HIDE_MEDIA_CONTROLLER = 2;
     private static final int HIDE_VOLUME_TEXTVIEW = 3;
+    private static final int SHOW_NET_SPEED = 4;
+
 
     private Utils timeUtil;
     private MyBroadcastRecevier recevier;
@@ -132,6 +134,15 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
+                case SHOW_NET_SPEED:
+                    if(isNetUrl) {
+                        String netSpeed = timeUtil.showNetSpeed(SystemVideoPlayerActivity.this);
+                        tv_buffer.setText("缓冲中..."+netSpeed);
+                        tv_loading.setText("正在加载中..."+netSpeed);
+                        removeMessages(SHOW_NET_SPEED);
+                        sendEmptyMessageDelayed(SHOW_NET_SPEED,1000);
+                    }
+                    break;
                 case PROGRESS:
                     int currentProgress = videoview.getCurrentPosition();
                     seekbarVideo.setProgress(currentProgress);
@@ -233,6 +244,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
         screenWidth = outMetrics.widthPixels;
         screenHeight = outMetrics.heightPixels;
+        handler.sendEmptyMessage(SHOW_NET_SPEED);
 
     }
 

@@ -8,12 +8,45 @@ import java.io.Serializable;
  * 功能: 视频音频信息对象
  */
 
-public class MediaItem implements Serializable{
-    String name ;
-    long duration ;
-    long size ;
-    String data ;
-    String artist ;
+public class MediaItem implements Serializable {
+    String name;
+    long duration;
+    long size;
+    String data;
+    String artist;
+    /**
+     * 图片路径
+     */
+    String imageUrl;
+    /**
+     * +    * 描述
+     */
+    String desc;
+    String heightUrl;
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public String getHeightUrl() {
+        return heightUrl;
+    }
+
+    public void setHeightUrl(String heightUrl) {
+        this.heightUrl = heightUrl;
+    }
 
     public MediaItem(String name, long duration, long size, String data, String artist) {
         this.name = name;
@@ -21,6 +54,9 @@ public class MediaItem implements Serializable{
         this.size = size;
         this.data = data;
         this.artist = artist;
+    }
+    public MediaItem() {
+
     }
 
     public String getName() {

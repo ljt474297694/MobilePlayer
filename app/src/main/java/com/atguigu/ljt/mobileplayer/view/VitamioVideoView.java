@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 /**
  * Created by 李金桐 on 2017/1/9.
  * QQ: 474297694
- * 功能: xxxx
+ * 功能: 万能播放器
  */
 
 public class VitamioVideoView extends io.vov.vitamio.widget.VideoView {

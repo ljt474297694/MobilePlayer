@@ -139,12 +139,12 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SHOW_NET_SPEED:
-                    if(isNetUrl) {
+                    if (isNetUrl) {
                         String netSpeed = timeUtil.showNetSpeed(VitamioVideoPlayerActivity.this);
-                        tv_buffer.setText("缓冲中..."+netSpeed);
-                        tv_loading.setText("正在加载中..."+netSpeed);
+                        tv_buffer.setText("缓冲中..." + netSpeed);
+                        tv_loading.setText("正在加载中..." + netSpeed);
                         removeMessages(SHOW_NET_SPEED);
-                        sendEmptyMessageDelayed(SHOW_NET_SPEED,1000);
+                        sendEmptyMessageDelayed(SHOW_NET_SPEED, 1000);
                     }
                     break;
                 case PROGRESS:
@@ -493,7 +493,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
         videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                Toast.makeText(VitamioVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
+                showErrorDialog();
                 return false;
             }
         });
@@ -506,6 +506,19 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
                 setNextVideo();
             }
         });
+    }
+
+    private void showErrorDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("提醒");
+        builder.setMessage("播放器播放出错了，请检查视频是否损坏，或者网络中断");
+        builder.setNegativeButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        builder.show();
     }
 
     /**
@@ -564,6 +577,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
             videoview.setVideoSize(screenWidth, screenHeight);
         }
     }
+
     private void showSwitchPlayerDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("提示")
@@ -577,6 +591,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
                 })
                 .show();
     }
+
     private void startSystemVideoPlayer() {
         if (videoview != null) {
             videoview.stopPlayback();
@@ -593,6 +608,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
         startActivity(intent);
         finish();
     }
+
     private void showMediaController() {
         isShowMediaController = true;
         llBottom.setVisibility(View.VISIBLE);

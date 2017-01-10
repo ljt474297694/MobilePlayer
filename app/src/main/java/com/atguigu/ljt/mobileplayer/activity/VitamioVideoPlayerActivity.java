@@ -487,13 +487,17 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
 //                });
             }
         });
+
         /**
          * 播放出错时调用
          */
         videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                showErrorDialog();
+                if(isError) {
+                    isError = false;
+                    showErrorDialog();
+                }
                 return false;
             }
         });
@@ -507,6 +511,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
             }
         });
     }
+    private  boolean isError = true;
 
     private void showErrorDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

@@ -504,7 +504,10 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                startVitamioVideoPlayer();
+                if (isError) {
+                    isError = false;
+                    startVitamioVideoPlayer();
+                }
                 return false;
             }
         });
@@ -519,6 +522,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             }
         });
     }
+
+    private boolean isError = true;
 
     private void startVitamioVideoPlayer() {
         if (videoview != null) {

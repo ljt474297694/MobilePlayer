@@ -61,7 +61,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private static final int PROGRESS = 0;
     private static final int PROGRESSTIME = 1;
     private static final int HIDE_MEDIA_CONTROLLER = 2;
-    private static final int HiDE_VOLUME_TEXTVIEW = 3;
+    private static final int HIDE_VOLUME_TEXTVIEW = 3;
 
     private Utils timeUtil;
     private MyBroadcastRecevier recevier;
@@ -136,7 +136,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 case HIDE_MEDIA_CONTROLLER:
                     hideMediaController();
                     break;
-                case HiDE_VOLUME_TEXTVIEW:
+                case HIDE_VOLUME_TEXTVIEW:
                     tv_volume.setVisibility(View.GONE);
                     break;
             }
@@ -246,6 +246,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             videoview.setVideoPath(mediaItem.getData());
         } else if (uri != null) {
             videoview.setVideoURI(uri);
+            setButtonEnable(false);
         }
     }
 
@@ -262,7 +263,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 setNextVideo();
             }
         } else if (uri != null) {
-            finish();
+
         }
     }
 
@@ -435,7 +436,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 isMute = !isMute;
                 am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
                 seekbarVoice.setProgress(progress);
-                tv_volume.setText(progress * 100 / maxVolume+"%");
+                  tv_volume.setText(progress * 100 / maxVolume+"%");
             } else {
                 isMute = !isMute;
                 am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
@@ -452,8 +453,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             seekbarVoice.setProgress(progress);
             tv_volume.setText(progress * 100 / maxVolume+"%");
         }
-        handler.removeMessages(HiDE_VOLUME_TEXTVIEW);
-        handler.sendEmptyMessageDelayed(HiDE_VOLUME_TEXTVIEW,4000);
+        handler.removeMessages(HIDE_VOLUME_TEXTVIEW);
+        handler.sendEmptyMessageDelayed(HIDE_VOLUME_TEXTVIEW,2000);
         tv_volume.setVisibility(View.VISIBLE);
         currentVolume = progress;
     }
@@ -516,7 +517,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 float distanceY = startY - endY;
                 float tempVolume = ((distanceY / touchScreenHeight) * maxVolume);
                 int volume = (int) Math.min(Math.max(startVolume + tempVolume, 0), maxVolume);
-                if (tempVolume != 0) {
+                if (Math.abs(tempVolume) > 1) {
                     updateVoice(volume, false);
                 }
                 break;
@@ -532,12 +533,18 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             currentVolume--;
+            if(currentVolume<0) {
+                currentVolume=0;
+            }
             updateVoice(currentVolume, false);
             handler.removeMessages(HIDE_MEDIA_CONTROLLER);
             handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             currentVolume++;
+            if(currentTime>maxVolume) {
+                currentTime = maxVolume;
+            }
             updateVoice(currentVolume, false);
             handler.removeMessages(HIDE_MEDIA_CONTROLLER);
             handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);

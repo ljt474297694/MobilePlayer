@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,19 +29,22 @@ import android.widget.Toast;
 import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
 import com.atguigu.ljt.mobileplayer.util.Utils;
-import com.atguigu.ljt.mobileplayer.view.VideoView;
+import com.atguigu.ljt.mobileplayer.view.VitamioVideoView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import io.vov.vitamio.MediaPlayer;
+import io.vov.vitamio.Vitamio;
 
 /**
  * Created by 李金桐 on 2017/1/7.
  * QQ: 474297694
  * 功能: 简单的自定义播放器 使用VideoView
  */
-public class SystemVideoPlayerActivity extends Activity implements View.OnClickListener {
-    private VideoView videoview;
+public class VitamioVideoPlayerActivity extends Activity implements View.OnClickListener {
+    private VitamioVideoView videoview;
     private Uri uri;
     private LinearLayout llTop;
     private TextView tvName;
@@ -95,8 +97,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
 
 
     private void findViews() {
-        setContentView(R.layout.activity_system_video_player);
-        videoview = (VideoView) findViewById(R.id.videoview);
+        setContentView(R.layout.activity_vitamio_video_player);
+        videoview = (VitamioVideoView) findViewById(R.id.videoview);
         tv_loading = (TextView) findViewById(R.id.tv_loading);
         tv_buffer = (TextView) findViewById(R.id.tv_buffer);
         ll_loading = (LinearLayout) findViewById(R.id.ll_loading);
@@ -138,16 +140,16 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SHOW_NET_SPEED:
-                    if (isNetUrl) {
-                        String netSpeed = timeUtil.showNetSpeed(SystemVideoPlayerActivity.this);
-                        tv_buffer.setText("缓冲中..." + netSpeed);
-                        tv_loading.setText("正在加载中..." + netSpeed);
+                    if(isNetUrl) {
+                        String netSpeed = timeUtil.showNetSpeed(VitamioVideoPlayerActivity.this);
+                        tv_buffer.setText("缓冲中..."+netSpeed);
+                        tv_loading.setText("正在加载中..."+netSpeed);
                         removeMessages(SHOW_NET_SPEED);
-                        sendEmptyMessageDelayed(SHOW_NET_SPEED, 1000);
+                        sendEmptyMessageDelayed(SHOW_NET_SPEED,1000);
                     }
                     break;
                 case PROGRESS:
-                    int currentProgress = videoview.getCurrentPosition();
+                    int currentProgress = (int) videoview.getCurrentPosition();
                     seekbarVideo.setProgress(currentProgress);
                     removeMessages(PROGRESS);
                     sendEmptyMessageDelayed(PROGRESS, 1000);
@@ -155,7 +157,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
 
                     break;
                 case PROGRESSTIME:
-                    int currentTime = videoview.getCurrentPosition();
+                    int currentTime = (int) videoview.getCurrentPosition();
                     tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
                     tvSystetime.setText(getSystemTime());
                     removeMessages(PROGRESSTIME);
@@ -217,20 +219,6 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
     }
 
-    private void showSwitchPlayerDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("提示")
-                .setMessage("当前播放使用系统播放器播放，当播放出现有声音没有画面的时候，请切换万能播放器")
-                .setNegativeButton("取消", null)
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startVitamioVideoPlayer();
-                    }
-                })
-                .show();
-    }
-
     private void startAndPause() {
         if (videoview.isPlaying()) {
             videoview.pause();
@@ -245,7 +233,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e("TAG", "SystemVideoPlayerActivity onCreate()");
+        Log.e("TAG", "VitamioVideoPlayerActivity onCreate()");
+        Vitamio.isInitialized(this);
         findViews();
         initData();
         setListener();
@@ -482,7 +471,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             @Override
             public void onPrepared(MediaPlayer mp) {
                 mp.start();
-                int duration = videoview.getDuration();
+                int duration = (int) videoview.getDuration();
                 seekbarVideo.setMax(duration);
                 tvDuration.setText(timeUtil.stringForTime(duration));
                 handler.sendEmptyMessage(PROGRESS);
@@ -505,11 +494,10 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         videoview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                startVitamioVideoPlayer();
+                Toast.makeText(VitamioVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
                 return false;
             }
         });
-
         /**
          * 播放完成时调用
          */
@@ -519,23 +507,6 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 setNextVideo();
             }
         });
-    }
-
-    private void startVitamioVideoPlayer() {
-        if (videoview != null) {
-            videoview.stopPlayback();
-        }
-        Intent intent = new Intent(SystemVideoPlayerActivity.this, VitamioVideoPlayerActivity.class);
-        if (mediaItems != null && mediaItems.size() > 0) {
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("videolist", mediaItems);
-            intent.putExtras(bundle);
-            intent.putExtra("position", position);
-        } else if (uri != null) {
-            intent.setDataAndType(uri, "video/*");
-        }
-        startActivity(intent);
-        finish();
     }
 
     /**
@@ -594,8 +565,35 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             videoview.setVideoSize(screenWidth, screenHeight);
         }
     }
-
-
+    private void showSwitchPlayerDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("当前播放使用万能播放器播放，当播放出现有视频有色块，播放效果不理想，请切换系统播放器播放")
+                .setNegativeButton("取消", null)
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startSystemVideoPlayer();
+                    }
+                })
+                .show();
+    }
+    private void startSystemVideoPlayer() {
+        if (videoview != null) {
+            videoview.stopPlayback();
+        }
+        Intent intent = new Intent(VitamioVideoPlayerActivity.this, SystemVideoPlayerActivity.class);
+        if (mediaItems != null && mediaItems.size() > 0) {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("videolist", mediaItems);
+            intent.putExtras(bundle);
+            intent.putExtra("position", position);
+        } else if (uri != null) {
+            intent.setDataAndType(uri, "video/*");
+        }
+        startActivity(intent);
+        finish();
+    }
     private void showMediaController() {
         isShowMediaController = true;
         llBottom.setVisibility(View.VISIBLE);
@@ -672,7 +670,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
 
     private void twoSecondFinish() {
         if (System.currentTimeMillis() - currentTime > 2000) {
-            Toast.makeText(SystemVideoPlayerActivity.this, "在按一次退出", Toast.LENGTH_SHORT).show();
+            Toast.makeText(VitamioVideoPlayerActivity.this, "在按一次退出", Toast.LENGTH_SHORT).show();
             currentTime = System.currentTimeMillis();
         } else {
             finish();

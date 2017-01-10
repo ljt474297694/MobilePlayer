@@ -57,6 +57,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private Button btnNext;
     private Button btnSwitchScreen;
     private TextView tv_volume;
+    private LinearLayout ll_loading;
+    private  TextView tv_loading;
 
     private static final int PROGRESS = 0;
     private static final int PROGRESSTIME = 1;
@@ -84,6 +86,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private void findViews() {
         setContentView(R.layout.activity_system_video_player);
         videoview = (VideoView) findViewById(R.id.videoview);
+        tv_loading = (TextView)findViewById(R.id.tv_loading);
+        ll_loading = (LinearLayout)findViewById(R.id.ll_loading);
         tv_volume = (TextView) findViewById(R.id.tv_volume);
         llTop = (LinearLayout) findViewById(R.id.ll_top);
         tvName = (TextView) findViewById(R.id.tv_name);
@@ -248,6 +252,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             videoview.setVideoURI(uri);
             setButtonEnable(false);
         }
+        ll_loading.setVisibility(View.VISIBLE);
     }
 
     private void setNextVideo() {
@@ -263,8 +268,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 setNextVideo();
             }
         } else if (uri != null) {
-
         }
+        ll_loading.setVisibility(View.VISIBLE);
     }
 
     private void setPreVideo() {
@@ -279,6 +284,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 position = 0;
             }
         }
+        ll_loading.setVisibility(View.VISIBLE);
     }
 
     private void checkButtonStatus() {
@@ -402,7 +408,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 handler.sendEmptyMessage(PROGRESSTIME);
                 videoWidth = mp.getVideoWidth();
                 videoHeight = mp.getVideoHeight();
-                setVideoType();
+                        setVideoType();
+                ll_loading.setVisibility(View.GONE);
             }
         });
         /**

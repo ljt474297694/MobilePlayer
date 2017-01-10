@@ -23,5 +23,6 @@
         android:textSize="20sp"
         android:background="#33000000"
         android:textColor="#ff3097fd"/>
+    <include layout="@layout/loading" android:id="@+id/ll_loading"/>
 
 </RelativeLayout>

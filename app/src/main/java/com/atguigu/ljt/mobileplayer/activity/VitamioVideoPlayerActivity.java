@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -233,7 +232,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e("TAG", "VitamioVideoPlayerActivity onCreate()");
+//        Log.e("TAG", "VitamioVideoPlayerActivity onCreate()");
         Vitamio.isInitialized(this);
         findViews();
         initData();

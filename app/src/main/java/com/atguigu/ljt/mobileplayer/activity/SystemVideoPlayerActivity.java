@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -245,7 +244,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e("TAG", "SystemVideoPlayerActivity onCreate()");
+//        Log.e("TAG", "SystemVideoPlayerActivity onCreate()");
         findViews();
         initData();
         setListener();

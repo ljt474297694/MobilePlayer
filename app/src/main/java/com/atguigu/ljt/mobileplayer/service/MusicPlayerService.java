@@ -28,6 +28,18 @@ public class MusicPlayerService extends Service {
     private MediaPlayer mediaPlayer;
     private boolean isLoaded;
     public static final String OPEN_COMPLETE = "open_complete";
+    public static final String STOP_MUSIC = "stop_music";
+    /**
+     * 三种播放模式
+     */
+    public static final int NORMAL = 0;
+    public static final int ALL = 1;
+    public static final int SINGLE = 2;
+    private ArrayList<MediaItem> mediaItems;
+    private int mPosition;
+    private MediaItem mediaItem;
+
+    private int mode = NORMAL;
     IMusicPlayerService.Stub stub = new IMusicPlayerService.Stub() {
         MusicPlayerService service = MusicPlayerService.this;
 
@@ -106,9 +118,6 @@ public class MusicPlayerService extends Service {
             }
         }
     };
-    private ArrayList<MediaItem> mediaItems;
-    private int position;
-    private MediaItem mediaItem;
 
     @Nullable
     @Override
@@ -130,7 +139,7 @@ public class MusicPlayerService extends Service {
     void openAudio(int position) {
         if (mediaItems != null && mediaItems.size() > 0) {
             mediaItem = mediaItems.get(position);
-            this.position = position;
+            this.mPosition = position;
             if (mediaPlayer != null) {
                 mediaPlayer.reset();
                 mediaPlayer = null;
@@ -153,7 +162,21 @@ public class MusicPlayerService extends Service {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    next();
+                    switch (mode) {
+                        case NORMAL:
+                            if (mPosition >= mediaItems.size()-1) {
+                                notifyChange(STOP_MUSIC);
+                            }else{
+                                openAudio(mPosition+1);
+                            }
+                            break;
+                        case ALL:
+                            next();
+                            break;
+                        case SINGLE:
+                            openAudio(mPosition);
+                            break;
+                    }
                 }
             });
             try {
@@ -192,14 +215,14 @@ public class MusicPlayerService extends Service {
      * 得到歌曲的名称
      */
     String getAudioName() {
-        return mediaItems.get(position).getName();
+        return mediaItems.get(mPosition).getName();
     }
 
     /**
      * 得到歌曲演唱者的名字
      */
     String getArtistName() {
-        return mediaItems.get(position).getArtist();
+        return mediaItems.get(mPosition).getArtist();
     }
 
     /**
@@ -220,40 +243,38 @@ public class MusicPlayerService extends Service {
      * 播放下一首歌曲
      */
     void next() {
-        position++;
-        if (position >= mediaItems.size()) {
-            position = 0;
+        mPosition++;
+        if (mPosition >= mediaItems.size()) {
+            mPosition = 0;
         }
-        openAudio(position);
+        openAudio(mPosition);
     }
 
     /**
      * 播放上一首歌曲
      */
     void pre() {
-        position--;
-        if (position <= 0) {
-            position = mediaItems.size() - 1;
+        mPosition--;
+        if (mPosition < 0) {
+            mPosition = mediaItems.size() - 1;
         }
-        openAudio(position);
+        openAudio(mPosition);
     }
 
     /**
      * 得到播放模式
      */
     int getPlayMode() {
-        return 0;
+        return mode;
     }
 
     /**
      * 设置播放模式
      */
     void setPlayMode(int mode) {
+        this.mode = mode;
     }
 
-    boolean isPlaying() {
-        return false;
-    }
 
     private void getDataFromLocal() {
         new Thread() {

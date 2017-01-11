@@ -71,6 +71,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
             if (service != null) {
                 try {
                     service.openAudio(position);
+                    showButtonState();
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -118,7 +119,23 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     @Override
     public void onClick(View v) {
         if (v == btnAudioPlaymode) {
-
+            try {
+                int mode = service.getPlayMode();
+                switch (mode) {
+                    case MusicPlayerService.NORMAL:
+                        service.setPlayMode(MusicPlayerService.ALL);
+                        break;
+                    case MusicPlayerService.ALL:
+                        service.setPlayMode(MusicPlayerService.SINGLE);
+                        break;
+                    case MusicPlayerService.SINGLE:
+                        service.setPlayMode(MusicPlayerService.NORMAL);
+                        break;
+                }
+                showButtonState();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         } else if (v == btnAudioPre) {
             try {
                 service.pre();
@@ -148,6 +165,26 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         }
     }
 
+    private void showButtonState() {
+        try {
+            int mode = service.getPlayMode();
+            switch (mode) {
+                case MusicPlayerService.NORMAL:
+                    btnAudioPlaymode.setBackgroundResource(R.drawable.btn_audio_playmode_normal_selector);
+                    break;
+                case MusicPlayerService.ALL:
+                    btnAudioPlaymode.setBackgroundResource(R.drawable.btn_audio_playmode_all_selector);
+                    break;
+                case MusicPlayerService.SINGLE:
+                    btnAudioPlaymode.setBackgroundResource(R.drawable.btn_audio_playmode_single_selector);
+                    break;
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -160,6 +197,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         receiver = new MyReceiver();
         position = getIntent().getIntExtra("position", 0);
         IntentFilter intentFilter = new IntentFilter(MusicPlayerService.OPEN_COMPLETE);
+        intentFilter.addAction(MusicPlayerService.STOP_MUSIC);
         registerReceiver(receiver, intentFilter);
         utils = new Utils();
         seekbarAudio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -189,7 +227,14 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            showViewData();
+            switch (intent.getAction()) {
+                case MusicPlayerService.OPEN_COMPLETE:
+                    showViewData();
+                    break;
+                case MusicPlayerService.STOP_MUSIC:
+                    btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
+                    break;
+            }
         }
     }
 

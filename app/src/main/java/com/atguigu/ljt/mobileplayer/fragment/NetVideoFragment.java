@@ -1,5 +1,6 @@
 package com.atguigu.ljt.mobileplayer.fragment;
 
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -8,6 +9,7 @@ import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.adapter.NetVideoAdapter;
 import com.atguigu.ljt.mobileplayer.base.BaseFragment;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
+import com.atguigu.ljt.mobileplayer.util.CacheUtil;
 import com.atguigu.ljt.mobileplayer.util.Constant;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
@@ -69,8 +71,11 @@ public class NetVideoFragment extends BaseFragment {
     @Override
     protected void initData() {
         super.initData();
+        String result = CacheUtil.getString(mContext,Constant.NET_URL,"imgcache");
+        if(!TextUtils.isEmpty(result)) {
+            processData(result);
+        }
         getDataFromNet();
-
 
     }
 
@@ -80,6 +85,7 @@ public class NetVideoFragment extends BaseFragment {
 
             @Override
             public void onSuccess(String result) {
+                CacheUtil.putString(mContext,result, Constant.NET_URL,"imgcache");
                 processData(result);
                 if(isLoadMore) {
                     refreshLayout.finishRefreshLoadMore();

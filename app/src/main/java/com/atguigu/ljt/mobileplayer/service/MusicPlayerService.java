@@ -145,6 +145,12 @@ public class MusicPlayerService extends Service {
                 mediaPlayer = null;
             }
             mediaPlayer = new MediaPlayer();
+            try {
+                mediaPlayer.setDataSource(mediaItem.getData());
+                mediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
@@ -155,7 +161,6 @@ public class MusicPlayerService extends Service {
             mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override
                 public boolean onError(MediaPlayer mp, int what, int extra) {
-                    next();
                     return true;
                 }
             });
@@ -164,10 +169,10 @@ public class MusicPlayerService extends Service {
                 public void onCompletion(MediaPlayer mp) {
                     switch (mode) {
                         case NORMAL:
-                            if (mPosition >= mediaItems.size()-1) {
+                            if (mPosition >= mediaItems.size() - 1) {
                                 notifyChange(STOP_MUSIC);
-                            }else{
-                                openAudio(mPosition+1);
+                            } else {
+                                openAudio(mPosition + 1);
                             }
                             break;
                         case ALL:
@@ -179,12 +184,7 @@ public class MusicPlayerService extends Service {
                     }
                 }
             });
-            try {
-                mediaPlayer.setDataSource(mediaItem.getData());
-                mediaPlayer.prepareAsync();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
 
         } else if (!isLoaded) {
             Toast.makeText(this, "没有加载完成", Toast.LENGTH_SHORT).show();

@@ -199,7 +199,9 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         IntentFilter intentFilter = new IntentFilter(MusicPlayerService.OPEN_COMPLETE);
         intentFilter.addAction(MusicPlayerService.STOP_MUSIC);
         registerReceiver(receiver, intentFilter);
+
         utils = new Utils();
+
         seekbarAudio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

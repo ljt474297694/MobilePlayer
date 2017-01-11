@@ -1,5 +1,6 @@
 package com.atguigu.ljt.mobileplayer.activity;
 
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -29,6 +30,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
     private void findViews() {
+        setContentView(R.layout.activity_system_audio_player);
         ivIcon = (ImageView)findViewById( R.id.iv_icon );
         tvArtist = (TextView)findViewById( R.id.tv_artist );
         tvName = (TextView)findViewById( R.id.tv_name );
@@ -45,6 +47,9 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         btnAudioStartPause.setOnClickListener( this );
         btnAudioNext.setOnClickListener( this );
         btnSwichLyric.setOnClickListener( this );
+        ivIcon.setBackgroundResource(R.drawable.animation_list);
+        AnimationDrawable drawable = (AnimationDrawable) ivIcon.getBackground();
+        drawable.start();
     }
 
     @Override
@@ -65,6 +70,6 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_system_audio_player);
+        findViews();
     }
 }

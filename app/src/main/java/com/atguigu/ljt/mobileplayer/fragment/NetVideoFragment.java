@@ -9,6 +9,8 @@ import com.atguigu.ljt.mobileplayer.adapter.NetVideoAdapter;
 import com.atguigu.ljt.mobileplayer.base.BaseFragment;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
 import com.atguigu.ljt.mobileplayer.util.Constant;
+import com.cjj.MaterialRefreshLayout;
+import com.cjj.MaterialRefreshListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,15 +33,37 @@ public class NetVideoFragment extends BaseFragment {
     private ProgressBar pb_no_media;
     @ViewInject(R.id.listview)
     private ListView listView;
+    @ViewInject(R.id.refresh)
+    private MaterialRefreshLayout refreshLayout;
     private ArrayList<MediaItem> mediaItems;
     private NetVideoAdapter adapter;
+    private boolean isLoadMore;
 
     @Override
     public View initView() {
         View view = View.inflate(mContext, R.layout.fragment_net_video, null);
         x.view().inject(this, view);
-
+        setListener();
         return view;
+    }
+
+    private void setListener() {
+        refreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
+            @Override
+            public void onRefresh(MaterialRefreshLayout materialRefreshLayout) {
+                isLoadMore = false;
+                getDataFromNet();
+//                Toast.makeText(mContext, "下拉刷新", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
+                super.onRefreshLoadMore(materialRefreshLayout);
+                isLoadMore = true;
+                getDataFromNet();
+//                Toast.makeText(mContext, "上拉加载", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -57,6 +81,11 @@ public class NetVideoFragment extends BaseFragment {
             @Override
             public void onSuccess(String result) {
                 processData(result);
+                if(isLoadMore) {
+                    refreshLayout.finishRefreshLoadMore();
+                }else{
+                    refreshLayout.finishRefresh();
+                }
             }
 
             @Override
@@ -77,14 +106,20 @@ public class NetVideoFragment extends BaseFragment {
     }
 
     private void processData(String json) {
-        mediaItems = parsedJson(json);
-        if (mediaItems != null && mediaItems.size() > 0) {
-            adapter = new NetVideoAdapter(mContext, mediaItems);
-            listView.setAdapter(adapter);
-            pb_no_media.setVisibility(View.GONE);
-        } else {
-            pb_no_media.setVisibility(View.VISIBLE);
+        if(!isLoadMore) {
+            mediaItems = parsedJson(json);
+            if (mediaItems != null && mediaItems.size() > 0) {
+                adapter = new NetVideoAdapter(mContext, mediaItems);
+                listView.setAdapter(adapter);
+                pb_no_media.setVisibility(View.GONE);
+            } else {
+                pb_no_media.setVisibility(View.VISIBLE);
+            }
+        }else{
+            mediaItems.addAll(parsedJson(json));
+            adapter.notifyDataSetChanged();
         }
+
     }
 
     private ArrayList<MediaItem> parsedJson(String json) {

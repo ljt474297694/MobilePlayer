@@ -267,6 +267,8 @@
             android:name=".activity.SystemAudioPlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTask"></activity>
+
+        <service android:name=".service.MusicPlayerService" />
     </application>
 
 </manifest>

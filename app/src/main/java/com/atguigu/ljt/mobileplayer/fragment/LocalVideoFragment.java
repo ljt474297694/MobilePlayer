@@ -74,6 +74,7 @@ public class LocalVideoFragment extends BaseFragment {
     protected void initData() {
         super.initData();
         getDataFromLocal();
+
     }
 
     private void getDataFromLocal() {

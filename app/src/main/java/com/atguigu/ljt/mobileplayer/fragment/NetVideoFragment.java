@@ -1,14 +1,10 @@
 package com.atguigu.ljt.mobileplayer.fragment;
 
-import android.content.Intent;
-import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
 
 import com.atguigu.ljt.mobileplayer.R;
-import com.atguigu.ljt.mobileplayer.activity.SystemVideoPlayerActivity;
 import com.atguigu.ljt.mobileplayer.adapter.NetVideoAdapter;
 import com.atguigu.ljt.mobileplayer.base.BaseFragment;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
@@ -31,8 +27,8 @@ import java.util.ArrayList;
  */
 
 public class NetVideoFragment extends BaseFragment {
-    @ViewInject(R.id.tv_no_media)
-    private TextView tv_no_media;
+    @ViewInject(R.id.pb_no_media)
+    private ProgressBar pb_no_media;
     @ViewInject(R.id.listview)
     private ListView listView;
     private ArrayList<MediaItem> mediaItems;
@@ -42,19 +38,7 @@ public class NetVideoFragment extends BaseFragment {
     public View initView() {
         View view = View.inflate(mContext, R.layout.fragment_net_video, null);
         x.view().inject(this, view);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
-                if (mediaItems != null && mediaItems.size() > 0) {
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable("videolist", mediaItems);
-                    intent.putExtras(bundle);
-                    intent.putExtra("position", position);
-                    startActivity(intent);
-                }
-            }
-        });
+
         return view;
     }
 
@@ -67,8 +51,9 @@ public class NetVideoFragment extends BaseFragment {
     }
 
     private void getDataFromNet() {
-        RequestParams entity = new RequestParams(Constant.NET_URL);
-        x.http().get(entity, new Callback.CommonCallback<String>() {
+        RequestParams params = new RequestParams(Constant.NET_URL);
+        x.http().get(params, new Callback.CommonCallback<String>() {
+
             @Override
             public void onSuccess(String result) {
                 processData(result);
@@ -96,9 +81,9 @@ public class NetVideoFragment extends BaseFragment {
         if (mediaItems != null && mediaItems.size() > 0) {
             adapter = new NetVideoAdapter(mContext, mediaItems);
             listView.setAdapter(adapter);
-            tv_no_media.setVisibility(View.GONE);
+            pb_no_media.setVisibility(View.GONE);
         } else {
-            tv_no_media.setVisibility(View.VISIBLE);
+            pb_no_media.setVisibility(View.VISIBLE);
         }
     }
 

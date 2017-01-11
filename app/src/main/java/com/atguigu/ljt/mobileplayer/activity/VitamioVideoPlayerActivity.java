@@ -390,6 +390,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
         }
         seekbarVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
+
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
                     updateVoice(progress, false);

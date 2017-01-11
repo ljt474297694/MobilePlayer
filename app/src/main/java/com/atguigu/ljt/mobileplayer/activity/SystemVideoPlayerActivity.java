@@ -91,6 +91,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private boolean isMute;
     private boolean isNetUrl;
     private int prePosition;
+    private float startY;
+    private float touchScreenHeight;
+    private int startVolume;
 
 
     private void findViews() {
@@ -157,8 +160,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     int currentTime = videoview.getCurrentPosition();
                     tvCurrenttime.setText(timeUtil.stringForTime(currentTime));
                     tvSystetime.setText(getSystemTime());
-                    removeMessages(PROGRESSTIME);
-                    sendEmptyMessageDelayed(PROGRESSTIME, 1000);
+
                     if (isNetUrl) {
                         int buffer = videoview.getBufferPercentage();
                         int bufferProgress = buffer * seekbarVideo.getMax() / 100;
@@ -174,7 +176,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                         }
                     }
                     prePosition = currentTime;
-
+                    removeMessages(PROGRESSTIME);
+                    sendEmptyMessageDelayed(PROGRESSTIME, 1000);
                     break;
                 case HIDE_MEDIA_CONTROLLER:
                     hideMediaController();
@@ -614,9 +617,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         llTop.setVisibility(View.GONE);
     }
 
-    private float startY;
-    private float touchScreenHeight;
-    private int startVolume;
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

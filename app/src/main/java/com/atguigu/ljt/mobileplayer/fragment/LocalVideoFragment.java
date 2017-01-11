@@ -37,7 +37,7 @@ public class LocalVideoFragment extends BaseFragment {
         public void handleMessage(Message msg) {
             if (mediaItems != null && mediaItems.size() > 0) {
                 mTextView.setVisibility(View.GONE);
-                adapter = new LocalVideoAdapter(mContext, mediaItems);
+                adapter = new LocalVideoAdapter(mContext, mediaItems, true);
                 mListView.setAdapter(adapter);
             } else {
                 mTextView.setVisibility(View.VISIBLE);

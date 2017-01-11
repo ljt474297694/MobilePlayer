@@ -24,11 +24,13 @@ public class LocalVideoAdapter extends BaseAdapter {
     private final Context mContext;
     private final ArrayList<MediaItem> datas;
     private Utils timeUtil;
+    private boolean isVideo;
 
-    public LocalVideoAdapter(Context mContext, ArrayList<MediaItem> mediaItems) {
+    public LocalVideoAdapter(Context mContext, ArrayList<MediaItem> mediaItems, boolean b) {
         this.mContext = mContext;
         this.datas = mediaItems;
         timeUtil = new Utils();
+        isVideo = b;
     }
 
     @Override
@@ -52,17 +54,21 @@ public class LocalVideoAdapter extends BaseAdapter {
         if (convertView == null) {
             holder = new ViewHolder();
             convertView = View.inflate(mContext, R.layout.item_local_video, null);
+            holder.iv_icon = (ImageView) convertView.findViewById(R.id.iv_icon);
             holder.tv_name = (TextView) convertView.findViewById(R.id.tv_name);
             holder.tv_duration = (TextView) convertView.findViewById(R.id.tv_duration);
             holder.tv_size = (TextView) convertView.findViewById(R.id.tv_size);
             convertView.setTag(holder);
-        }else{
+        } else {
             holder = (ViewHolder) convertView.getTag();
         }
         MediaItem mediaItem = datas.get(position);
         holder.tv_name.setText(mediaItem.getName());
         holder.tv_duration.setText(timeUtil.stringForTime((int) mediaItem.getDuration()));
-        holder.tv_size.setText(Formatter.formatFileSize(mContext,mediaItem.getSize()));
+        holder.tv_size.setText(Formatter.formatFileSize(mContext, mediaItem.getSize()));
+        if(!isVideo) {
+            holder.iv_icon.setImageResource(R.drawable.music_default_bg);
+        }
         return convertView;
     }
 

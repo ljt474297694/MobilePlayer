@@ -35,7 +35,7 @@ public class MusicPlayerService extends Service {
     private MediaPlayer mediaPlayer;
     private boolean isLoaded;
     public static final String OPEN_COMPLETE = "open_complete";
-    public static final String STOP_MUSIC = "stop_music";
+    public static final Integer NORMAL_STOP = -1;
     /**
      * 三种播放模式
      */
@@ -126,6 +126,13 @@ public class MusicPlayerService extends Service {
                 mediaPlayer.seekTo(position);
             }
         }
+
+        @Override
+        public void notifyChange() throws RemoteException {
+            service.notifyChange();
+        }
+
+
     };
 
     @Nullable
@@ -165,7 +172,7 @@ public class MusicPlayerService extends Service {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     start();
-                    notifyChange(OPEN_COMPLETE);
+                    notifyChange();
                 }
             });
 
@@ -182,7 +189,7 @@ public class MusicPlayerService extends Service {
                     switch (mode) {
                         case NORMAL:
                             if (mPosition >= mediaItems.size() - 1) {
-                                notifyChange(STOP_MUSIC);
+                                EventBus.getDefault().post(NORMAL_STOP);
                             } else {
                                 openAudio(mPosition + 1);
                             }
@@ -203,11 +210,8 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    /**
-     * @param action 通过EventBus 在不同状态通过不同的action发送对应的数据
-     */
-    private void notifyChange(String action) {
-        EventBus.getDefault().post(action);
+    public void notifyChange() {
+        EventBus.getDefault().post(mediaItem);
     }
 
     private NotificationManager nm;

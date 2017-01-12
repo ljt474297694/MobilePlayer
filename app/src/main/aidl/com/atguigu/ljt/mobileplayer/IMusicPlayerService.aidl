@@ -2,7 +2,6 @@
 package com.atguigu.ljt.mobileplayer;
 
 // Declare any non-default types here with import statements
-
 interface IMusicPlayerService {
     /**
      * Demonstrates some basic types that you can use as parameters
@@ -62,4 +61,5 @@ interface IMusicPlayerService {
                             boolean isPlaying();
 
                             void seekTo(int position);
+ void notifyChange();
 }

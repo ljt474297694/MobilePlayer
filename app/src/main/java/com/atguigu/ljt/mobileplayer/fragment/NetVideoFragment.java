@@ -1,11 +1,15 @@
 package com.atguigu.ljt.mobileplayer.fragment;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.atguigu.ljt.mobileplayer.R;
+import com.atguigu.ljt.mobileplayer.activity.SystemVideoPlayerActivity;
 import com.atguigu.ljt.mobileplayer.adapter.NetVideoAdapter;
 import com.atguigu.ljt.mobileplayer.base.BaseFragment;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
@@ -64,6 +68,19 @@ public class NetVideoFragment extends BaseFragment {
                 isLoadMore = true;
                 getDataFromNet();
 //                Toast.makeText(mContext, "上拉加载", Toast.LENGTH_SHORT).show();
+            }
+        });
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(mContext, SystemVideoPlayerActivity.class);
+                if (mediaItems != null && mediaItems.size() > 0) {
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("videolist", mediaItems);
+                    intent.putExtras(bundle);
+                    intent.putExtra("position", position);
+                    startActivity(intent);
+                }
             }
         });
     }

@@ -2,7 +2,6 @@ package com.atguigu.ljt.mobileplayer.activity;
 
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
@@ -19,6 +18,7 @@ import android.widget.TextView;
 
 import com.atguigu.ljt.mobileplayer.IMusicPlayerService;
 import com.atguigu.ljt.mobileplayer.R;
+import com.atguigu.ljt.mobileplayer.bean.MediaItem;
 import com.atguigu.ljt.mobileplayer.service.MusicPlayerService;
 import com.atguigu.ljt.mobileplayer.util.Utils;
 
@@ -73,11 +73,11 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
             if (service != null) {
                 try {
                     if (notification) {
-                        showViewData();
+                        service.notifyChange();
                     } else {
                         service.openAudio(position);
-                        showButtonState();
                     }
+                        showButtonState();
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -200,8 +200,6 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
 
     private void initData() {
 
-        IntentFilter intentFilter = new IntentFilter(MusicPlayerService.OPEN_COMPLETE);
-        intentFilter.addAction(MusicPlayerService.STOP_MUSIC);
 
         utils = new Utils();
 
@@ -236,38 +234,26 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     }
 
     /**
-     * @param action 通过EentBusv传递数据 通过不同的action进行对应的操作
+     *
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void audioEventBus(String action) {
-        switch (action) {
-            case MusicPlayerService.OPEN_COMPLETE:
-//                Toast.makeText(SystemAudioPlayerActivity.this, MusicPlayerService.OPEN_COMPLETE, Toast.LENGTH_SHORT).show();
-                showViewData();
-                break;
-            case MusicPlayerService.STOP_MUSIC:
-//                Toast.makeText(SystemAudioPlayerActivity.this, MusicPlayerService.STOP_MUSIC, Toast.LENGTH_SHORT).show();
-                btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
-                break;
-        }
-    }
-
-    private void showViewData() {
-        try {
-            if (service.getArtistName().equals("<unknown>")) {
+    public void showViewData(MediaItem mediaItem) {
+            if (mediaItem.getArtist().equals("<unknown>")) {
                 tvArtist.setText("");
             } else {
-                tvArtist.setText(service.getArtistName());
+                tvArtist.setText(mediaItem.getArtist());
             }
-            tvName.setText(service.getAudioName());
-            seekbarAudio.setMax(service.getDuration());
+            tvName.setText(mediaItem.getName());
+            seekbarAudio.setMax((int) mediaItem.getDuration());
             handler.sendEmptyMessage(PROGRESS);
             handler.sendEmptyMessage(AUDIOTIME);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void ResetStartButton(Integer action){
+        if(action==MusicPlayerService.NORMAL_STOP) {
+            btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
         }
     }
-
     private void startAndBindServide() {
         Intent intent = new Intent(this, MusicPlayerService.class);
 

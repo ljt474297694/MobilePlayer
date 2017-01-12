@@ -1,8 +1,6 @@
 package com.atguigu.ljt.mobileplayer.activity;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -23,6 +21,10 @@ import com.atguigu.ljt.mobileplayer.IMusicPlayerService;
 import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.service.MusicPlayerService;
 import com.atguigu.ljt.mobileplayer.util.Utils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public class SystemAudioPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     private ImageView ivIcon;
@@ -70,8 +72,12 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
             service = IMusicPlayerService.Stub.asInterface(iBinder);
             if (service != null) {
                 try {
-                    service.openAudio(position);
-                    showButtonState();
+                    if (notification) {
+                        showViewData();
+                    } else {
+                        service.openAudio(position);
+                        showButtonState();
+                    }
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -84,15 +90,9 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         }
     };
     private IMusicPlayerService service;
-    private MyReceiver receiver;
     private Utils utils;
+    private boolean notification;
 
-    /**
-     * Find the Views in the layout<br />
-     * <br />
-     * Auto-created on 2017-01-11 18:10:23 by Android Layout Finder
-     * (http://www.buzzingandroid.com/tools/android-layout-finder)
-     */
     private void findViews() {
         setContentView(R.layout.activity_system_audio_player);
         ivIcon = (ImageView) findViewById(R.id.iv_icon);
@@ -165,6 +165,9 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         }
     }
 
+    /**
+     * 根据音乐服务当前的模式进行设置对应的图片
+     */
     private void showButtonState() {
         try {
             int mode = service.getPlayMode();
@@ -188,17 +191,17 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         findViews();
+        getData();
         initData();
         startAndBindServide();
     }
 
     private void initData() {
-        receiver = new MyReceiver();
-        position = getIntent().getIntExtra("position", 0);
+
         IntentFilter intentFilter = new IntentFilter(MusicPlayerService.OPEN_COMPLETE);
         intentFilter.addAction(MusicPlayerService.STOP_MUSIC);
-        registerReceiver(receiver, intentFilter);
 
         utils = new Utils();
 
@@ -225,18 +228,27 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
 
     }
 
-    class MyReceiver extends BroadcastReceiver {
+    public void getData() {
+        notification = getIntent().getBooleanExtra("notification", false);
+        if (!notification) {
+            position = getIntent().getIntExtra("position", 0);
+        }
+    }
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
-                case MusicPlayerService.OPEN_COMPLETE:
-                    showViewData();
-                    break;
-                case MusicPlayerService.STOP_MUSIC:
-                    btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
-                    break;
-            }
+    /**
+     * @param action 通过EentBusv传递数据 通过不同的action进行对应的操作
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void audioEventBus(String action) {
+        switch (action) {
+            case MusicPlayerService.OPEN_COMPLETE:
+//                Toast.makeText(SystemAudioPlayerActivity.this, MusicPlayerService.OPEN_COMPLETE, Toast.LENGTH_SHORT).show();
+                showViewData();
+                break;
+            case MusicPlayerService.STOP_MUSIC:
+//                Toast.makeText(SystemAudioPlayerActivity.this, MusicPlayerService.STOP_MUSIC, Toast.LENGTH_SHORT).show();
+                btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
+                break;
         }
     }
 
@@ -268,9 +280,21 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         if (conn != null) {
             unbindService(conn);
         }
-        if (receiver != null) {
-            unregisterReceiver(receiver);
-        }
+
         super.onDestroy();
     }
+
+    @Override
+    protected void onStart() {
+        EventBus.getDefault().register(this);
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+
 }

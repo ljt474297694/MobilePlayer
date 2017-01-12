@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         rg_main = (RadioGroup) findViewById(R.id.rg_main);
         isGrantExternalRW(this);
-
         initFragment();
 
         initListener();
@@ -116,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 解决安卓6.0以上版本不能读取外部存储权限的问题
+     *
      * @param activity
      * @return
      */
@@ -136,10 +136,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(System.currentTimeMillis()- currentTime >2000) {
+        if (System.currentTimeMillis() - currentTime > 2000) {
             Toast.makeText(MainActivity.this, "在按一次退出", Toast.LENGTH_SHORT).show();
             currentTime = System.currentTimeMillis();
-        }else{
+        } else {
             finish();
         }
     }

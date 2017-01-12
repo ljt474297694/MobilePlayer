@@ -1,5 +1,8 @@
 package com.atguigu.ljt.mobileplayer.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -13,7 +16,11 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.atguigu.ljt.mobileplayer.IMusicPlayerService;
+import com.atguigu.ljt.mobileplayer.R;
+import com.atguigu.ljt.mobileplayer.activity.SystemAudioPlayerActivity;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +45,9 @@ public class MusicPlayerService extends Service {
     private ArrayList<MediaItem> mediaItems;
     private int mPosition;
     private MediaItem mediaItem;
-
+    /**
+     * 默认播放模式
+     */
     private int mode = NORMAL;
     IMusicPlayerService.Stub stub = new IMusicPlayerService.Stub() {
         MusicPlayerService service = MusicPlayerService.this;
@@ -151,6 +160,7 @@ public class MusicPlayerService extends Service {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
@@ -158,12 +168,14 @@ public class MusicPlayerService extends Service {
                     notifyChange(OPEN_COMPLETE);
                 }
             });
+
             mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override
                 public boolean onError(MediaPlayer mp, int what, int extra) {
                     return true;
                 }
             });
+
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
@@ -191,17 +203,37 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    /**
+     * @param action 通过EventBus 在不同状态通过不同的action发送对应的数据
+     */
     private void notifyChange(String action) {
-        Intent intent = new Intent(action);
-        //发广播
-        sendBroadcast(intent);
+        EventBus.getDefault().post(action);
     }
+
+    private NotificationManager nm;
 
     /**
      * 开始播放音频
      */
     void start() {
         mediaPlayer.start();
+        nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        Notification notification = null;
+        Intent intent = new Intent(this, SystemAudioPlayerActivity.class);
+        intent.putExtra("notification", true);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            notification = new Notification.Builder(this)
+                    .setSmallIcon(R.drawable.notification_music_playing)
+                    .setContentTitle("321音乐")
+                    .setContentText("正在播放:" + getAudioName())
+                    .setContentIntent(PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT))
+                    .build();
+        }
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        nm.notify(1, notification);
+
     }
 
     /**
@@ -209,6 +241,7 @@ public class MusicPlayerService extends Service {
      */
     void pause() {
         mediaPlayer.pause();
+        nm.cancel(1);
     }
 
     /**
@@ -306,5 +339,6 @@ public class MusicPlayerService extends Service {
             }
         }.start();
     }
+
 
 }

@@ -19,6 +19,7 @@ import com.atguigu.ljt.mobileplayer.IMusicPlayerService;
 import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.activity.SystemAudioPlayerActivity;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
+import com.atguigu.ljt.mobileplayer.util.CacheUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -34,7 +35,6 @@ import java.util.ArrayList;
 public class MusicPlayerService extends Service {
     private MediaPlayer mediaPlayer;
     private boolean isLoaded;
-    public static final String OPEN_COMPLETE = "open_complete";
     public static final Integer NORMAL_STOP = -1;
     /**
      * 三种播放模式
@@ -133,7 +133,9 @@ public class MusicPlayerService extends Service {
         }
 
 
+
     };
+
 
     @Nullable
     @Override
@@ -144,6 +146,7 @@ public class MusicPlayerService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        mode = CacheUtil.getPlayMode(this,"playmode");
         getDataFromLocal();
     }
 
@@ -186,27 +189,35 @@ public class MusicPlayerService extends Service {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    switch (mode) {
-                        case NORMAL:
-                            if (mPosition >= mediaItems.size() - 1) {
-                                EventBus.getDefault().post(NORMAL_STOP);
-                            } else {
-                                openAudio(mPosition + 1);
-                            }
-                            break;
-                        case ALL:
-                            next();
-                            break;
-                        case SINGLE:
-                            openAudio(mPosition);
-                            break;
-                    }
+                    ModePlay();
+
                 }
             });
 
 
         } else if (!isLoaded) {
             Toast.makeText(this, "没有加载完成", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * 当每一首播放完成的时候 根据模式判断如何播放下一首
+     */
+    private void ModePlay() {
+        switch (mode) {
+            case NORMAL:
+                if (mPosition >= mediaItems.size() - 1) {
+                    EventBus.getDefault().post(NORMAL_STOP);
+                } else {
+                    openAudio(mPosition + 1);
+                }
+                break;
+            case ALL:
+                next();
+                break;
+            case SINGLE:
+                openAudio(mPosition);
+                break;
         }
     }
 
@@ -310,6 +321,7 @@ public class MusicPlayerService extends Service {
      */
     void setPlayMode(int mode) {
         this.mode = mode;
+        CacheUtil.putPlayMode(this,"playmode",mode);
     }
 
 

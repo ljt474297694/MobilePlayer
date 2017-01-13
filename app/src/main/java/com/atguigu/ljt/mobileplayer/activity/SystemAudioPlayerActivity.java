@@ -20,13 +20,18 @@ import com.atguigu.ljt.mobileplayer.IMusicPlayerService;
 import com.atguigu.ljt.mobileplayer.R;
 import com.atguigu.ljt.mobileplayer.bean.MediaItem;
 import com.atguigu.ljt.mobileplayer.service.MusicPlayerService;
+import com.atguigu.ljt.mobileplayer.util.LyricParaser;
 import com.atguigu.ljt.mobileplayer.util.Utils;
+import com.atguigu.ljt.mobileplayer.view.LyricShowView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
+
 public class SystemAudioPlayerActivity extends AppCompatActivity implements View.OnClickListener {
+
     private ImageView ivIcon;
     private TextView tvArtist;
     private TextView tvName;
@@ -37,12 +42,24 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     private Button btnAudioStartPause;
     private Button btnAudioNext;
     private Button btnSwichLyric;
+    private LyricShowView lyric_show_view;
     private int position;
     private static final int PROGRESS = 0;
     private static final int AUDIOTIME = 1;
+    private static final int SHOW_LYRIC = 2;
     private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
+                case SHOW_LYRIC:
+                    try {
+                        int currentPosition = service.getCurrentPosition();
+                        lyric_show_view.setNextShowLyric(currentPosition);
+                        removeMessages(SHOW_LYRIC);
+                        sendEmptyMessageDelayed(SHOW_LYRIC, 50);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                    break;
                 case AUDIOTIME:
                     try {
                         int currentPosition = service.getCurrentPosition();
@@ -77,7 +94,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
                     } else {
                         service.openAudio(position);
                     }
-                        showButtonState();
+                    showButtonState();
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -95,6 +112,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
 
     private void findViews() {
         setContentView(R.layout.activity_system_audio_player);
+        lyric_show_view = (LyricShowView) findViewById(R.id.lyric_show_view);
         ivIcon = (ImageView) findViewById(R.id.iv_icon);
         tvArtist = (TextView) findViewById(R.id.tv_artist);
         tvName = (TextView) findViewById(R.id.tv_name);
@@ -119,23 +137,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     @Override
     public void onClick(View v) {
         if (v == btnAudioPlaymode) {
-            try {
-                int mode = service.getPlayMode();
-                switch (mode) {
-                    case MusicPlayerService.NORMAL:
-                        service.setPlayMode(MusicPlayerService.ALL);
-                        break;
-                    case MusicPlayerService.ALL:
-                        service.setPlayMode(MusicPlayerService.SINGLE);
-                        break;
-                    case MusicPlayerService.SINGLE:
-                        service.setPlayMode(MusicPlayerService.NORMAL);
-                        break;
-                }
-                showButtonState();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+            changePlayMode();
         } else if (v == btnAudioPre) {
             try {
                 service.pre();
@@ -162,6 +164,26 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
             }
         } else if (v == btnSwichLyric) {
             // Handle clicks for btnSwichLyric
+        }
+    }
+
+    private void changePlayMode() {
+        try {
+            int mode = service.getPlayMode();
+            switch (mode) {
+                case MusicPlayerService.NORMAL:
+                    service.setPlayMode(MusicPlayerService.ALL);
+                    break;
+                case MusicPlayerService.ALL:
+                    service.setPlayMode(MusicPlayerService.SINGLE);
+                    break;
+                case MusicPlayerService.SINGLE:
+                    service.setPlayMode(MusicPlayerService.NORMAL);
+                    break;
+            }
+            showButtonState();
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
     }
 
@@ -234,26 +256,43 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     }
 
     /**
-     *
+     * EventBus订阅者 可以轻松优雅的进行数据传输
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void showViewData(MediaItem mediaItem) {
-            if (mediaItem.getArtist().equals("<unknown>")) {
-                tvArtist.setText("");
-            } else {
-                tvArtist.setText(mediaItem.getArtist());
-            }
-            tvName.setText(mediaItem.getName());
-            seekbarAudio.setMax((int) mediaItem.getDuration());
-            handler.sendEmptyMessage(PROGRESS);
-            handler.sendEmptyMessage(AUDIOTIME);
+        if (mediaItem.getArtist().equals("<unknown>")) {
+            tvArtist.setText("");
+        } else {
+            tvArtist.setText(mediaItem.getArtist());
+        }
+        tvName.setText(mediaItem.getName());
+        seekbarAudio.setMax((int) mediaItem.getDuration());
+        String path = mediaItem.getData();
+
+        path = path.substring(0, path.lastIndexOf("."));
+        File file = new File(path + ".lrc");
+        if (!file.exists()) {
+            file = new File(path + ".txt");
+        }
+        LyricParaser lyricParaser = new LyricParaser();
+        lyricParaser.readFile(file);
+
+    if(lyricParaser.isExistsLyric()) {
+        lyric_show_view.setLyric(lyricParaser.getLyricBeens());
+        handler.sendEmptyMessage(SHOW_LYRIC);
     }
+
+    handler.sendEmptyMessage(PROGRESS);
+    handler.sendEmptyMessage(AUDIOTIME);
+}
+
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void ResetStartButton(Integer action){
-        if(action==MusicPlayerService.NORMAL_STOP) {
+    public void ResetStartButton(Integer action) {
+        if (action == MusicPlayerService.NORMAL_STOP) {
             btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
         }
     }
+
     private void startAndBindServide() {
         Intent intent = new Intent(this, MusicPlayerService.class);
 

@@ -35,6 +35,7 @@ import java.util.ArrayList;
  */
 
 public class NetVideoFragment extends BaseFragment {
+
     @ViewInject(R.id.pb_no_media)
     private ProgressBar pb_no_media;
     @ViewInject(R.id.listview)

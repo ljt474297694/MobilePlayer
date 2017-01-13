@@ -7,6 +7,7 @@
     android:background="@drawable/base_bg"
     tools:context="com.atguigu.ljt.mobileplayer.activity.SystemAudioPlayerActivity">
     <RelativeLayout
+        android:id="@+id/rl_top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
     <ImageView
@@ -36,6 +37,7 @@
             android:textSize="16sp" />
     </RelativeLayout>
     <LinearLayout
+        android:id="@+id/ll_bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -112,4 +114,10 @@
         </LinearLayout>
 
     </LinearLayout>
+    <com.atguigu.ljt.mobileplayer.view.LyricShowView
+        android:id="@+id/lyric_show_view"
+        android:layout_below="@+id/rl_top"
+        android:layout_above="@id/ll_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 </RelativeLayout>

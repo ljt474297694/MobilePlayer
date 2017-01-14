@@ -62,4 +62,5 @@ interface IMusicPlayerService {
 
                             void seekTo(int position);
  void notifyChange();
+ int getAudioSessionId();
 }

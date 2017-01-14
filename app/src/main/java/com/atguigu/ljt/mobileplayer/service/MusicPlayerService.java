@@ -132,6 +132,10 @@ public class MusicPlayerService extends Service {
             service.notifyChange();
         }
 
+        @Override
+        public int getAudioSessionId() throws RemoteException {
+            return mediaPlayer.getAudioSessionId();
+        }
 
 
     };

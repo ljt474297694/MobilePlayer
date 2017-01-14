@@ -11,11 +11,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
     <ImageView
+        android:visibility="gone"
         android:id="@+id/iv_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/now_playing_matrix_01"
         android:layout_centerHorizontal="true"/>
+        <com.atguigu.ljt.mobileplayer.view.BaseVisualizerView
+            android:id="@+id/basevisualizerview"
+            android:layout_width="150dp"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"/>
         <TextView
             android:id="@+id/tv_artist"
             android:layout_width="wrap_content"

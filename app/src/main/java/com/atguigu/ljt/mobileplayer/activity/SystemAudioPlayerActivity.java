@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -22,6 +23,7 @@ import com.atguigu.ljt.mobileplayer.bean.MediaItem;
 import com.atguigu.ljt.mobileplayer.service.MusicPlayerService;
 import com.atguigu.ljt.mobileplayer.util.LyricParaser;
 import com.atguigu.ljt.mobileplayer.util.Utils;
+import com.atguigu.ljt.mobileplayer.view.BaseVisualizerView;
 import com.atguigu.ljt.mobileplayer.view.LyricShowView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -43,6 +45,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     private Button btnAudioNext;
     private Button btnSwichLyric;
     private LyricShowView lyric_show_view;
+    private BaseVisualizerView basevisualizerview;
     private int position;
     private static final int PROGRESS = 0;
     private static final int AUDIOTIME = 1;
@@ -109,9 +112,11 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     private IMusicPlayerService service;
     private Utils utils;
     private boolean notification;
+    private Visualizer mVisualizer;
 
     private void findViews() {
         setContentView(R.layout.activity_system_audio_player);
+        basevisualizerview = (BaseVisualizerView)findViewById(R.id.basevisualizerview);
         lyric_show_view = (LyricShowView) findViewById(R.id.lyric_show_view);
         ivIcon = (ImageView) findViewById(R.id.iv_icon);
         tvArtist = (TextView) findViewById(R.id.tv_artist);
@@ -222,7 +227,6 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
 
     private void initData() {
 
-
         utils = new Utils();
 
         seekbarAudio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -260,6 +264,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void showViewData(MediaItem mediaItem) {
+        setupVisualizerFxAndUi();
         if (mediaItem.getArtist().equals("<unknown>")) {
             tvArtist.setText("");
         } else {
@@ -291,7 +296,33 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
             btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
         }
     }
+    /**
+     * 生成一个VisualizerView对象，使音频频谱的波段能够反映到 VisualizerView上
+     */
+    private void setupVisualizerFxAndUi() {
 
+        int audioSessionid = 0;
+        try {
+            audioSessionid = service.getAudioSessionId();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        System.out.println("audioSessionid==" + audioSessionid);
+        mVisualizer = new Visualizer(audioSessionid);
+        // 参数内必须是2的位数
+        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        // 设置允许波形表示，并且捕获它
+        basevisualizerview.setVisualizer(mVisualizer);
+        mVisualizer.setEnabled(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isFinishing()) {
+            mVisualizer.release();
+        }
+    }
     private void startAndBindServide() {
         Intent intent = new Intent(this, MusicPlayerService.class);
 

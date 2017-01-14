@@ -232,22 +232,22 @@ public class MusicPlayerService extends Service {
      */
     void start() {
         mediaPlayer.start();
-        nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        Notification notification = null;
-        Intent intent = new Intent(this, SystemAudioPlayerActivity.class);
-        intent.putExtra("notification", true);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+        Notification notification = null;
+        nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            Intent intent = new Intent(this, SystemAudioPlayerActivity.class);
+            PendingIntent pendingintent = PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_CANCEL_CURRENT);
             notification = new Notification.Builder(this)
                     .setSmallIcon(R.drawable.notification_music_playing)
+                    .setContentText("正在播放:"+getAudioName())
                     .setContentTitle("321音乐")
-                    .setContentText("正在播放:" + getAudioName())
-                    .setContentIntent(PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT))
+                    .setContentIntent(pendingintent)
                     .build();
+            notification.flags = Notification.FLAG_ONGOING_EVENT;
+            nm.notify(1, notification);
         }
-        notification.flags = Notification.FLAG_ONGOING_EVENT;
-        nm.notify(1, notification);
 
     }
 

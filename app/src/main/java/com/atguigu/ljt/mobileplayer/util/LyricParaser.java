@@ -2,6 +2,7 @@ package com.atguigu.ljt.mobileplayer.util;
 
 import com.atguigu.ljt.mobileplayer.bean.LyricBean;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,63 +31,72 @@ public class LyricParaser {
     }
 
     public void readFile(File file) {
+
         if (file == null || !file.exists()) {
-            lyricBeens = null;
             isExistsLyric = false;
+            lyricBeens = null;
         } else {
             lyricBeens = new ArrayList<>();
             isExistsLyric = true;
-            BufferedReader br = null;
+            BufferedReader reader = null;
             try {
-                br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "GBK"));
+                reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), getCharset(file)));
                 String line;
-                while ((line = br.readLine()) != null) {
+                while ((line = reader.readLine()) != null) {
                     analyzeLyrc(line);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                if (br != null) {
+                if (reader != null) {
                     try {
-                        br.close();
+                        reader.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             }
+        }
 
-            Collections.sort(lyricBeens, new Comparator<LyricBean>() {
-                @Override
-                public int compare(LyricBean o1, LyricBean o2) {
 
-                    return (int) (o1.getTimePoint() - o2.getTimePoint());
+        Collections.sort(lyricBeens, new Comparator<LyricBean>() {
+            @Override
+            public int compare(LyricBean o1, LyricBean o2) {
+                if(o1.getTimePoint()>o2.getTimePoint()) {
+                    return 1;
+                }else if(o1.getTimePoint()<o2.getTimePoint()) {
+                    return -1;
+                }else{
+                    return 0;
                 }
-            });
+            }
+        });
 
-            for (int i = 0; i < lyricBeens.size(); i++) {
-                LyricBean one = lyricBeens.get(i);
+        for (int i = 0; i < lyricBeens.size(); i++) {
+            LyricBean one = lyricBeens.get(i);
 
-                if (i + 1 < lyricBeens.size()) {
-                    LyricBean two = lyricBeens.get(i + 1);
-                    one.setSleepTime(two.getTimePoint() - one.getTimePoint());
-                }
-
+            if (i + 1 < lyricBeens.size()) {
+                LyricBean two = lyricBeens.get(i + 1);
+                one.setSleepTime(two.getTimePoint() - one.getTimePoint());
             }
         }
 
+
     }
 
+
     private void analyzeLyrc(String line) {
+
         int pos1 = line.indexOf("[");
         int pos2 = line.indexOf("]");
         if (pos1 == 0 && pos2 != -1) {
-            long[] timeLongs = new long[getCountTag(line)];
-            String timeStr = line.substring(pos1 + 1, pos2);
-            timeLongs[0] = strTime2Long(timeStr);
+        long[] timeLongs = new long[getCountTag(line)];
+        String timeStr = line.substring(pos1+1,pos2);
+        timeLongs[0] = strTime2Long(timeStr);
+        if(timeLongs[0] == -1) {
+            return;
+        }
 
-            if (timeLongs[0] == -1) {
-                return;
-            }
             int i = 1;
             String content = line;
             while (pos1 == 0 && pos2 != -1) {
@@ -104,14 +114,14 @@ public class LyricParaser {
                 }
             }
 
-            LyricBean lyricBean =new LyricBean();
-            for (int i1 = 0; i1 < timeLongs.length; i1++) {
-                if(timeLongs[i1] != 0) {
-                    lyricBean.setContent(content);
-                    lyricBean.setTimePoint(timeLongs[i1]);
-                    lyricBeens.add(lyricBean);
-                    lyricBean = new LyricBean();
-                }
+            LyricBean lyricBean;
+            for(int i1 = 0; i1 <timeLongs.length ; i1++) {
+              if(timeLongs[i1]!=0) {
+                  lyricBean = new LyricBean();
+                  lyricBean.setContent(content);
+                  lyricBean.setTimePoint(timeLongs[i1]);
+                  lyricBeens.add(lyricBean);
+              }
             }
         }
 
@@ -120,21 +130,16 @@ public class LyricParaser {
     private long strTime2Long(String timeStr) {
         long time = -1;
         try {
-            //1.根据":"切成02和04.12
             String[] s1 = timeStr.split(":");
-            //2.根据“.”把04.12切成04和12
             String[] s2 = s1[1].split("\\.");
-            //3.转换成long类型的毫秒时间
-            //分
-            long min = Long.valueOf(s1[0]);//02
 
-            //秒
-            long second = Long.valueOf(s2[0]);//04
+            long m = Long.valueOf(s1[0]);
 
-            //毫秒
-            long mil = Long.valueOf(s2[1]);//12
+            long s = Long.valueOf(s2[0]);
 
-            time = min * 60 * 1000 + second * 1000 + mil * 10;
+            long ms = Long.valueOf(s2[1]);
+
+            time = m * 60000 + s * 1000 + ms * 10;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -155,5 +160,69 @@ public class LyricParaser {
         } else {
             return left.length > right.length ? left.length : right.length;
         }
+    }
+    /**
+     * 判断文件编码
+     * @param file 文件
+     * @return 编码：GBK,UTF-8,UTF-16LE
+     */
+    public String getCharset(File file) {
+        String charset = "GBK";
+        byte[] first3Bytes = new byte[3];
+        try {
+            boolean checked = false;
+            BufferedInputStream bis = new BufferedInputStream(
+                    new FileInputStream(file));
+            bis.mark(0);
+            int read = bis.read(first3Bytes, 0, 3);
+            if (read == -1)
+                return charset;
+            if (first3Bytes[0] == (byte) 0xFF && first3Bytes[1] == (byte) 0xFE) {
+                charset = "UTF-16LE";
+                checked = true;
+            } else if (first3Bytes[0] == (byte) 0xFE
+                    && first3Bytes[1] == (byte) 0xFF) {
+                charset = "UTF-16BE";
+                checked = true;
+            } else if (first3Bytes[0] == (byte) 0xEF
+                    && first3Bytes[1] == (byte) 0xBB
+                    && first3Bytes[2] == (byte) 0xBF) {
+                charset = "UTF-8";
+                checked = true;
+            }
+            bis.reset();
+            if (!checked) {
+                int loc = 0;
+                while ((read = bis.read()) != -1) {
+                    loc++;
+                    if (read >= 0xF0)
+                        break;
+                    if (0x80 <= read && read <= 0xBF)
+                        break;
+                    if (0xC0 <= read && read <= 0xDF) {
+                        read = bis.read();
+                        if (0x80 <= read && read <= 0xBF)
+                            continue;
+                        else
+                            break;
+                    } else if (0xE0 <= read && read <= 0xEF) {
+                        read = bis.read();
+                        if (0x80 <= read && read <= 0xBF) {
+                            read = bis.read();
+                            if (0x80 <= read && read <= 0xBF) {
+                                charset = "UTF-8";
+                                break;
+                            } else
+                                break;
+                        } else
+                            break;
+                    }
+                }
+            }
+            bis.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return charset;
     }
 }

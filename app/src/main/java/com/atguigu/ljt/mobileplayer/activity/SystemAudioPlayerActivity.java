@@ -268,7 +268,6 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         tvName.setText(mediaItem.getName());
         seekbarAudio.setMax((int) mediaItem.getDuration());
         String path = mediaItem.getData();
-
         path = path.substring(0, path.lastIndexOf("."));
         File file = new File(path + ".lrc");
         if (!file.exists()) {
@@ -277,14 +276,14 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         LyricParaser lyricParaser = new LyricParaser();
         lyricParaser.readFile(file);
 
-    if(lyricParaser.isExistsLyric()) {
-        lyric_show_view.setLyric(lyricParaser.getLyricBeens());
-        handler.sendEmptyMessage(SHOW_LYRIC);
-    }
+        if (lyricParaser.isExistsLyric()) {
+            lyric_show_view.setLyric(lyricParaser.getLyricBeens());
+            handler.sendEmptyMessage(SHOW_LYRIC);
+        }
 
-    handler.sendEmptyMessage(PROGRESS);
-    handler.sendEmptyMessage(AUDIOTIME);
-}
+        handler.sendEmptyMessage(PROGRESS);
+        handler.sendEmptyMessage(AUDIOTIME);
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ResetStartButton(Integer action) {

@@ -32,6 +32,8 @@ public class LyricShowView extends TextView {
      */
     private int index = 0;
     private int mCurrentPosition;
+    private float sleepTime;
+    private float timePoint;
 
     public LyricShowView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -63,6 +65,21 @@ public class LyricShowView extends TextView {
     protected void onDraw(Canvas canvas) {
         if (lyricBeens != null && lyricBeens.size() > 0) {
 
+            if(index != lyricBeens.size()-1){
+                float plush = 0;
+
+                if(sleepTime==0){
+                    plush = 0;
+                }else{
+                    // 这一句花的时间： 这一句休眠时间  =  这一句要移动的距离：总距离(行高)
+                    //这一句要移动的距离 = （这一句花的时间/这一句休眠时间） * 总距离(行高)
+                    plush = ((mCurrentPosition-timePoint)/sleepTime)*textHeight;
+                }
+
+
+                canvas.translate(0,-plush);
+
+            }
             canvas.drawText(lyricBeens.get(index).getContent(), width / 2, height / 2, paint);
             float tempY = height / 2;
             for (int i = index - 1; i >= 0; i--) {
@@ -111,9 +128,17 @@ public class LyricShowView extends TextView {
              * 当音乐的进度时间 小于某句歌词的时间 又大于等于他前一句歌词的时间
              * 那么i-1 就是当前需要高亮的歌词 前提是 歌词数据按照时间从小到大排序
              */
-            if (mCurrentPosition < lyricBeens.get(i).getTimePoint()
-                    && mCurrentPosition >= lyricBeens.get(i - 1).getTimePoint()) {
-                index = i - 1;
+            if (mCurrentPosition < lyricBeens.get(i).getTimePoint()) {
+                int indexTemp = i - 1;
+
+                if (mCurrentPosition >= lyricBeens.get(indexTemp).getTimePoint()) {
+                    index = indexTemp;
+                    sleepTime = lyricBeens.get(indexTemp).getSleepTime();
+                    timePoint = lyricBeens.get(indexTemp).getTimePoint();
+
+                }
+            } else {
+                index = i;
             }
         }
 
@@ -121,6 +146,6 @@ public class LyricShowView extends TextView {
     }
 
     public void setLyric(ArrayList<LyricBean> lyricBeens) {
-        this.lyricBeens =lyricBeens;
+        this.lyricBeens = lyricBeens;
     }
 }

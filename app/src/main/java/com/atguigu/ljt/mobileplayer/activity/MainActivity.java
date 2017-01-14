@@ -136,7 +136,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (System.currentTimeMillis() - currentTime > 2000) {
+        if (position != 0) {
+            rg_main.check(R.id.rb_local_video);
+        } else if (System.currentTimeMillis() - currentTime > 2000) {
+
             Toast.makeText(MainActivity.this, "在按一次退出", Toast.LENGTH_SHORT).show();
             currentTime = System.currentTimeMillis();
         } else {

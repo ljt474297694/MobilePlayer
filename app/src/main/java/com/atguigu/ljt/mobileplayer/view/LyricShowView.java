@@ -65,19 +65,19 @@ public class LyricShowView extends TextView {
     protected void onDraw(Canvas canvas) {
         if (lyricBeens != null && lyricBeens.size() > 0) {
 
-            if(index != lyricBeens.size()-1){
+            if (index != lyricBeens.size() - 1) {
                 float plush = 0;
 
-                if(sleepTime==0){
+                if (sleepTime == 0) {
                     plush = 0;
-                }else{
+                } else {
                     // 这一句花的时间： 这一句休眠时间  =  这一句要移动的距离：总距离(行高)
                     //这一句要移动的距离 = （这一句花的时间/这一句休眠时间） * 总距离(行高)
-                    plush = ((mCurrentPosition-timePoint)/sleepTime)*textHeight;
+                    plush = ((mCurrentPosition - timePoint) / sleepTime) * textHeight;
                 }
 
 
-                canvas.translate(0,-plush);
+                canvas.translate(0, -plush);
 
             }
             canvas.drawText(lyricBeens.get(index).getContent(), width / 2, height / 2, paint);
@@ -120,8 +120,10 @@ public class LyricShowView extends TextView {
      */
     public void setNextShowLyric(int currentPosition) {
         this.mCurrentPosition = currentPosition;
-
-        if (lyricBeens == null || lyricBeens.size() == 0) return;
+        if (lyricBeens == null || lyricBeens.size() == 0) {
+            invalidate();
+            return;
+        }
 
         for (int i = 1; i < lyricBeens.size(); i++) {
             /**

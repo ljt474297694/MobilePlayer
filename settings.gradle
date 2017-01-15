@@ -1,1 +1,2 @@
 include ':app', ':startallvideoplayer', ':vitamio-sample', ':vitamio', ':xutils-sample', ':xutils',  ':MaterialRefreshLayout-lib',  ':MaterialRefreshLayout-sample'
+include ':speechDemo'

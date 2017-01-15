@@ -11,7 +11,7 @@ import android.view.View;
 /**
  * Created by 李金桐 on 2017/1/14.
  * QQ: 474297694
- * 功能: xxxx
+ * 功能: 音乐频谱
  */
 
 public class BaseVisualizerView extends View implements Visualizer.OnDataCaptureListener{

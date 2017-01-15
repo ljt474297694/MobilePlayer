@@ -14,11 +14,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -34,6 +36,7 @@ import com.atguigu.ljt.mobileplayer.view.VideoView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
 
 /**
  * Created by 李金桐 on 2017/1/7.
@@ -92,8 +95,11 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private boolean isNetUrl;
     private int prePosition;
     private float startY;
+    private float startX;
     private float touchScreenHeight;
     private int startVolume;
+    private Vibrator vibrator
+            ;
 
 
     private void findViews() {
@@ -626,23 +632,59 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 startY = event.getY();
+                startX = event.getX();
                 touchScreenHeight = Math.min(screenHeight, screenWidth);
                 startVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
                 break;
             case MotionEvent.ACTION_MOVE:
                 float endY = event.getY();
                 float distanceY = startY - endY;
-                float tempVolume = ((distanceY / touchScreenHeight) * maxVolume);
-                int volume = (int) Math.min(Math.max(startVolume + tempVolume, 0), maxVolume);
-                if (Math.abs(tempVolume) > 1) {
-                    updateVoice(volume, false);
+                if(startX>screenWidth/2) {
+                    float tempVolume = ((distanceY / touchScreenHeight) * maxVolume);
+                    int volume = (int) Math.min(Math.max(startVolume + tempVolume, 0), maxVolume);
+                    if (Math.abs(tempVolume) > 1) {
+                        updateVoice(volume, false);
+                    }
+                }else{
+                    //左边屏幕--改变亮度
+                    final double FLING_MIN_DISTANCE = 0.5;
+                    final double FLING_MIN_VELOCITY = 0.5;
+                    if (startY- endY > FLING_MIN_DISTANCE
+                            && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                        setBrightness(20);
+                    }
+                    if (startY - endY < FLING_MIN_DISTANCE
+                            && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                        setBrightness(-20);
+                    }
+
                 }
+
                 break;
             case MotionEvent.ACTION_UP:
 
                 break;
         }
         return true;
+    }
+    public void setBrightness(float brightness) {
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        // if (lp.screenBrightness <= 0.1) {
+        // return;
+        // }
+        lp.screenBrightness = lp.screenBrightness + brightness / 255.0f;
+        if (lp.screenBrightness > 1) {
+            lp.screenBrightness = 1;
+            vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            long[] pattern = { 10, 200 }; // OFF/ON/OFF/ON...
+            vibrator.vibrate(pattern, -1);
+        } else if (lp.screenBrightness < 0.2) {
+            lp.screenBrightness = (float) 0.2;
+            vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            long[] pattern = { 10, 200 }; // OFF/ON/OFF/ON...
+            vibrator.vibrate(pattern, -1);
+        }
+        getWindow().setAttributes(lp);
     }
 
 

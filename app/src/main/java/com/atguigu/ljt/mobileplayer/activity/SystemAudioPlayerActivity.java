@@ -284,7 +284,10 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         if (lyricParaser.isExistsLyric()) {
             lyric_show_view.setLyric(lyricParaser.getLyricBeens());
             handler.sendEmptyMessage(SHOW_LYRIC);
+        }else{
+            lyric_show_view.setLyric(lyricParaser.getLyricBeens());
         }
+
 
         handler.sendEmptyMessage(PROGRESS);
         handler.sendEmptyMessage(AUDIOTIME);

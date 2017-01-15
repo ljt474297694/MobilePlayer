@@ -26,6 +26,8 @@ public class LyricParaser {
         return lyricBeens;
     }
 
+
+
     public boolean isExistsLyric() {
         return isExistsLyric;
     }
@@ -35,6 +37,7 @@ public class LyricParaser {
         if (file == null || !file.exists()) {
             isExistsLyric = false;
             lyricBeens = null;
+            return;
         } else {
             lyricBeens = new ArrayList<>();
             isExistsLyric = true;
@@ -57,8 +60,6 @@ public class LyricParaser {
                 }
             }
         }
-
-
         Collections.sort(lyricBeens, new Comparator<LyricBean>() {
             @Override
             public int compare(LyricBean o1, LyricBean o2) {

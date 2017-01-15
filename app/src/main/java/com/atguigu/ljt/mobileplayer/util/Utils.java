@@ -18,7 +18,6 @@ public class Utils {
         // 转换成字符串的时间
         mFormatBuilder = new StringBuilder();
         mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
-
     }
 
     /**

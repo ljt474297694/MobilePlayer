@@ -31,6 +31,8 @@ import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
 import org.xutils.x;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -85,6 +87,11 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
     private void gotoSearch() {
         String word = etSearch.getText().toString().trim();
+        try {
+            word = URLEncoder.encode(word,"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         if (!TextUtils.isEmpty(word)) {
 
             String url = Constant.NET_SEARCH_URL + word;

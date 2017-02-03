@@ -103,6 +103,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
      * 用来保存 视频进度条开始拖动的进度
      */
     public int startSeekBerProgress;
+    /**
+     * 当进度条的改变超过3秒 显示快进/后退的文本
+     */
     private int fromUserTemp;
 
 
@@ -472,25 +475,31 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
              * @param seekBar
              * @param progress
              * @param fromUser 用户进度产生改变时返回ture 否则返回false
+             *        当视频进度条 有3次1秒以上的改变时 显示快进/后退的文本提示
              */
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser && Math.abs(progress - startSeekBerProgress - fromUserTemp * 1000)/1000 > 1) {
+                if (fromUser && Math.abs(progress - startSeekBerProgress - fromUserTemp * 1000) / 1000 > 1) {
                     fromUserTemp++;
                     if (fromUserTemp > 2) {
-                        if (progress  > startSeekBerProgress) {
-                            tv_volume.setText("快进--> " + Math.abs(progress  - startSeekBerProgress)/ 1000 + "秒");
-                            handler.removeMessages(HIDE_VOLUME_TEXTVIEW);
-                            tv_volume.setVisibility(View.VISIBLE);
+                        if (progress > startSeekBerProgress) {
+                            tv_volume.setText("快进--> " + Math.abs(progress - startSeekBerProgress) / 1000 + "秒");
                         } else {
-                            tv_volume.setText("后退<-- " + Math.abs(progress  - startSeekBerProgress)/ 1000 + "秒");
-                            handler.removeMessages(HIDE_VOLUME_TEXTVIEW);
-                            tv_volume.setVisibility(View.VISIBLE);
+                            tv_volume.setText("后退<-- " + Math.abs(progress - startSeekBerProgress) / 1000 + "秒");
                         }
+                        handler.removeMessages(HIDE_VOLUME_TEXTVIEW);
+                        tv_volume.setVisibility(View.VISIBLE);
                     }
                 }
             }
 
+            /**
+             *
+             * @param seekBar
+             * 当拖动开始的时候记录开始的进度值
+             * 并移除进度条的同步的消息
+             * 同时移除隐藏控制面板的消息
+             */
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 startSeekBerProgress = seekBar.getProgress();
@@ -498,6 +507,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 handler.removeMessages(HIDE_MEDIA_CONTROLLER);
             }
 
+            /**
+             *
+             * @param seekBar
+             * 当拖动结束的时候 让缓存次数重新赋值 并且让videoview定位到指定的进度
+             * 同时 发送隐藏TextView  进度条同步  面板隐藏的消息
+             */
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 fromUserTemp = 0;
@@ -578,6 +593,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     /**
      * @param progress       progress的进度和音量同步 可以完美控制音量
      * @param isConsiderMute 是否考虑静音
+     * 静音按键和滑动声音改变的
+     * 并显示 音量改变的提示Text
      */
     private void updateVoice(int progress, boolean isConsiderMute) {
         if (isConsiderMute) {

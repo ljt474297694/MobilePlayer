@@ -98,8 +98,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     private float startX;
     private float touchScreenHeight;
     private int startVolume;
-    private Vibrator vibrator
-            ;
+    private Vibrator vibrator;
+    /**
+     * 用来保存 视频进度条开始拖动的进度
+     */
+    public int startSeekBerProgress;
+    private int fromUserTemp;
 
 
     private void findViews() {
@@ -133,7 +137,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         btnStartPause.setOnClickListener(this);
         btnNext.setOnClickListener(this);
         btnSwitchScreen.setOnClickListener(this);
-        hideMediaController();
+        isShowMediaController(true);
         am = (AudioManager) getSystemService(AUDIO_SERVICE);
         currentVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
         maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
@@ -186,7 +190,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                     sendEmptyMessageDelayed(PROGRESSTIME, 1000);
                     break;
                 case HIDE_MEDIA_CONTROLLER:
-                    hideMediaController();
+                    isShowMediaController(false);
                     break;
                 case HIDE_VOLUME_TEXTVIEW:
                     tv_volume.setVisibility(View.GONE);
@@ -239,6 +243,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 .show();
     }
 
+    /**
+     * 切换视频播放和暂停的状态同时切换按钮图片
+     */
     private void startAndPause() {
         if (videoview.isPlaying()) {
             videoview.pause();
@@ -446,9 +453,9 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 if (isShowMediaController) {
-                    hideMediaController();
+                    isShowMediaController(!isShowMediaController);
                 } else {
-                    showMediaController();
+                    isShowMediaController(!isShowMediaController);
                 }
                 return super.onSingleTapConfirmed(e);
             }
@@ -458,6 +465,8 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         //调用系统的媒体控制器
 //        videoview.setMediaController(new MediaController(this));
         seekbarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+
             /**
              *
              * @param seekBar
@@ -466,21 +475,36 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
              */
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    videoview.seekTo(progress);
+                if (fromUser && Math.abs(progress - startSeekBerProgress - fromUserTemp * 1000)/1000 > 1) {
+                    fromUserTemp++;
+                    if (fromUserTemp > 2) {
+                        if (progress  > startSeekBerProgress) {
+                            tv_volume.setText("快进--> " + Math.abs(progress  - startSeekBerProgress)/ 1000 + "秒");
+                            handler.removeMessages(HIDE_VOLUME_TEXTVIEW);
+                            tv_volume.setVisibility(View.VISIBLE);
+                        } else {
+                            tv_volume.setText("后退<-- " + Math.abs(progress  - startSeekBerProgress)/ 1000 + "秒");
+                            handler.removeMessages(HIDE_VOLUME_TEXTVIEW);
+                            tv_volume.setVisibility(View.VISIBLE);
+                        }
+                    }
                 }
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                startSeekBerProgress = seekBar.getProgress();
                 handler.removeMessages(PROGRESS);
                 handler.removeMessages(HIDE_MEDIA_CONTROLLER);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                fromUserTemp = 0;
+                videoview.seekTo(seekBar.getProgress());
                 handler.sendEmptyMessage(PROGRESS);
                 handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+                handler.sendEmptyMessage(HIDE_VOLUME_TEXTVIEW);
             }
         });
         /**
@@ -561,12 +585,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
                 isMute = !isMute;
                 am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
                 seekbarVoice.setProgress(progress);
-                tv_volume.setText(progress * 100 / maxVolume + "%");
+                tv_volume.setText("音量: " + progress * 100 / maxVolume + "%");
             } else {
                 isMute = !isMute;
                 am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
                 seekbarVoice.setProgress(0);
-                tv_volume.setText(0 + "%");
+                tv_volume.setText("静音模式");
             }
         } else {
             if (progress <= 0) {
@@ -576,10 +600,10 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             }
             am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
             seekbarVoice.setProgress(progress);
-            tv_volume.setText(progress * 100 / maxVolume + "%");
+            tv_volume.setText("音量: " + progress * 100 / maxVolume + "%");
         }
         handler.removeMessages(HIDE_VOLUME_TEXTVIEW);
-        handler.sendEmptyMessageDelayed(HIDE_VOLUME_TEXTVIEW, 2000);
+        handler.sendEmptyMessageDelayed(HIDE_VOLUME_TEXTVIEW, 1000);
         tv_volume.setVisibility(View.VISIBLE);
         currentVolume = progress;
     }
@@ -609,20 +633,23 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
     }
 
 
-    private void showMediaController() {
-        isShowMediaController = true;
-        llBottom.setVisibility(View.VISIBLE);
-        llTop.setVisibility(View.VISIBLE);
-        handler.removeMessages(HIDE_MEDIA_CONTROLLER);
-        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
-    }
+    /**
+     * @param isShow 是否显示媒体控制面板
+     */
+    private void isShowMediaController(boolean isShow) {
+        if (isShow) {
+            isShowMediaController = true;
+            llBottom.setVisibility(View.VISIBLE);
+            llTop.setVisibility(View.VISIBLE);
+            handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+        } else {
+            isShowMediaController = false;
+            llBottom.setVisibility(View.GONE);
+            llTop.setVisibility(View.GONE);
+        }
 
-    private void hideMediaController() {
-        isShowMediaController = false;
-        llBottom.setVisibility(View.GONE);
-        llTop.setVisibility(View.GONE);
     }
-
 
 
     @Override
@@ -639,17 +666,17 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
             case MotionEvent.ACTION_MOVE:
                 float endY = event.getY();
                 float distanceY = startY - endY;
-                if(startX>screenWidth/2) {
+                if (startX > screenWidth / 2) {
                     float tempVolume = ((distanceY / touchScreenHeight) * maxVolume);
                     int volume = (int) Math.min(Math.max(startVolume + tempVolume, 0), maxVolume);
                     if (Math.abs(tempVolume) > 1) {
                         updateVoice(volume, false);
                     }
-                }else{
+                } else {
                     //左边屏幕--改变亮度
                     final double FLING_MIN_DISTANCE = 0.5;
                     final double FLING_MIN_VELOCITY = 0.5;
-                    if (startY- endY > FLING_MIN_DISTANCE
+                    if (startY - endY > FLING_MIN_DISTANCE
                             && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
                         setBrightness(20);
                     }
@@ -667,6 +694,7 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         }
         return true;
     }
+
     public void setBrightness(float brightness) {
         WindowManager.LayoutParams lp = getWindow().getAttributes();
         // if (lp.screenBrightness <= 0.1) {
@@ -676,12 +704,12 @@ public class SystemVideoPlayerActivity extends Activity implements View.OnClickL
         if (lp.screenBrightness > 1) {
             lp.screenBrightness = 1;
             vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-            long[] pattern = { 10, 200 }; // OFF/ON/OFF/ON...
+            long[] pattern = {10, 200}; // OFF/ON/OFF/ON...
             vibrator.vibrate(pattern, -1);
         } else if (lp.screenBrightness < 0.2) {
             lp.screenBrightness = (float) 0.2;
             vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-            long[] pattern = { 10, 200 }; // OFF/ON/OFF/ON...
+            long[] pattern = {10, 200}; // OFF/ON/OFF/ON...
             vibrator.vibrate(pattern, -1);
         }
         getWindow().setAttributes(lp);

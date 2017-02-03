@@ -447,9 +447,6 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
              */
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    videoview.seekTo(progress);
-                }
             }
 
             @Override
@@ -460,6 +457,7 @@ public class VitamioVideoPlayerActivity extends Activity implements View.OnClick
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                videoview.seekTo(seekBar.getProgress());
                 handler.sendEmptyMessage(PROGRESS);
                 handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
             }

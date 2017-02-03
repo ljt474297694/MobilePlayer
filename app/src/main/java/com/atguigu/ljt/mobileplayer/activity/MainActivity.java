@@ -63,17 +63,17 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
                 Fragment currentFragment = fragments.get(position);
-                switchFragment(currentFragment);
-            }
-        });
-        rg_main.check(R.id.rb_local_video);
-    }
+                    switchFragment(currentFragment);
+                }
+            });
+            rg_main.check(R.id.rb_local_video);
+        }
 
-    /**
-     * 根据Fragmnent的显示状态进行判断  是否添加显示或者隐藏对应的Fragment
-     *
-     * @param currentFragment
-     */
+        /**
+         * 根据Fragmnent的显示状态进行判断  是否添加显示或者隐藏对应的Fragment
+         *
+         * @param currentFragment
+         */
     private void switchFragment(Fragment currentFragment) {
         //当页面不同时才切换页面
         if (tempFragment != currentFragment) {

@@ -3,7 +3,6 @@ package com.atguigu.ljt.mobileplayer.activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -88,7 +87,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     private void gotoSearch() {
         String word = etSearch.getText().toString().trim();
         try {
-            word = URLEncoder.encode(word,"UTF-8");
+            word = URLEncoder.encode(word, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -96,7 +95,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
             String url = Constant.NET_SEARCH_URL + word;
             getDataFromNet(url);
-            Log.e("TAG", "SearchActivity gotoSearch()");
+//            Log.e("TAG", "SearchActivity gotoSearch()");
 
         } else {
             //请输入关键字
@@ -109,7 +108,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
-                Log.e("TAG", "SearchActivity onSuccess()");
+//                Log.e("TAG", "SearchActivity onSuccess()");
                 processData(result);
 
             }
@@ -132,10 +131,9 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void processData(String result) {
-        Log.e("TAG", "SearchActivity processData()");
+//        Log.e("TAG", "SearchActivity processData()");
         SearchBean searchBean = new Gson().fromJson(result, SearchBean.class);
         List<SearchBean.ItemsBean> items = searchBean.getItems();
-        Log.e("TAG", "SearchActivity processData()==="+items.size());
         if (items != null && items.size() > 0) {
             SearchAdapter searchAdapter = new SearchAdapter(SearchActivity.this, items);
             listview.setAdapter(searchAdapter);
